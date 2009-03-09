@@ -1,3 +1,9 @@
 You might want to set up Dan Bricklin's repo in order to merge changes from there.
 
   git remote add dbrick git://github.com/DanBricklin/socialcalc.git
+
+When you want to integrate Dan's code:
+
+  git pull --rebase dbrick/master
+
+You'll need to `git push --force` after doing this rebase operation.
