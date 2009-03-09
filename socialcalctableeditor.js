@@ -4573,7 +4573,8 @@ SocialCalc.ProcessKeyDown = function(e) {
 
    e = e || window.event;
 
-   if (e.which==undefined) { // IE
+   // IE and Safari 3.1+ won't fire keyPress, so check for special keys here.
+   if (e.which==undefined || (typeof e.keyIdentifier == "string")) {
       ch = kt.specialKeysCommon[e.keyCode];
       if (!ch) {
          if (e.ctrlKey) {
