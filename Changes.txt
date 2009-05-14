@@ -476,4 +476,3 @@ Bug in SheetFunctions.pm: StringFunctions error doesn't return right away
  IRR check for values?
 Bug in Sheet.pm: evaluate_parsed_formula return of range doesn't swap sheetname!coord
 Sheet.ResetSheet doesn't seem to work well -- it does not recalc or redisplay well afterward
-
