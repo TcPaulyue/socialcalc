@@ -451,6 +451,55 @@ Continued fixing bugs in socialcalcpopup.js and adding features.
 2009-02-25:
 Moved spreadsheetcontrol button and tab styles to SocialCalc.Constants to make skinning easier.
 
+2009-03-10:
+Made socialcalc2demo10.
+Made socialcalcserver.pl use all filenames and have settings file.
+
+2009-03-19:
+Added function arg_def, func_def, and func_class to formula1.js and socialcalcconstants.js.
+Added definitions to all functions.
+Added function information routines FillFunctionInfo and FunctionArgString.
+Added prompt to InputEcho to show function argument prompts.
+Added function list dialog to ssctrltest1.html.
+Added SocialCalc.EditorAddToInput for pasting function starts, etc.
+
+2009-03-23:
+Added formula bar buttons to socialcalcspreadsheetcontrol.js.
+Moved function list as a formula bar button in socialcalcspreadsheetcontrol.js.
+Added Multi-line input box dialog and support.
+
+2009-03-24:
+Tuned multi-line input to handle disabling inputbox when editing and when multi-line cell content.
+Added SocialCalc.Formula.FreshnessInfo to help determine if calculations are out of date.
+
+2009-04-01:
+Fixed bug with maxUndo that messed up audit. Now have maxRedo, too.
+
+2009-04-15:
+Added value type "tl" -- text link
+Upgraded text-link format handing, and added SocialCalc.ParseCellLinkText and .expand_text_link.
+Made better handling of linktype (socialcalcspreadsheetcontrol.js) and $options (SocialCalcServersideUtilities.pm)
+
+2009-04-16:
+More work on text-link and added to SocialCalcServersideUtilities.pm.
+
+2009-04-29:
+Made linkstyle an object, added context.defaultlinkstyle and context.defaultHTMLlinkstyle.
+HTML rendering stuff like SpreadsheetControlCreateCellHTML take optional linkstyle or use defaultHTMLlinkstyle.
+Linking now has [pagename] and {worksheet [pagename]}/
+Added SocialCalc.Callback.MakePageLink.
+
+2009-04-30:
+Added Link dialog.
+
+2009-05-01:
+Added set format and popup options to Link dialog.
+Upgraded SocialCalcServersideUtilities.pm to handle pagenames and workspaces.
+
+2009-05-07:
+Added SocialCalc.GetElementPositionWithScroll to socialcalc-3.js to fix Popup bug when settings pane scrolled.
+Added sheet.recalcchangedavalue so you can tell if a recalc changed anything.
+
 
 TO DO:
 

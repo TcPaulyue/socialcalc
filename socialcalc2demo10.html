@@ -2,7 +2,7 @@
 <html>
 <head>
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>SocialCalc 0.7.9</title>
+<title>SocialCalc 0.7.10</title>
 <script type="text/javascript" src="socialcalcconstants.js"></script>
 <script type="text/javascript" src="socialcalc-3.js"></script>
 <script type="text/javascript" src="socialcalctableeditor.js"></script>
@@ -81,10 +81,10 @@ function setmsg(str) {document.getElementById("msg").innerHTML = str;}
          var charttypes = "Horizontal Bar:barh|Vertical Bar:barv|Line:line|Area:area|Scatter:scatter";
 
          viewobj.values.panel = {
-            charttype: {setting: "charttype", type: "PopupList", id: s.idPrefix+"charttype",
-               initialdata: charttypes},
-            charttitle: {setting: "chartitle", type: "PopupList", id: s.idPrefix+"charttitle",
-               initialdata: null}
+//            charttype: {setting: "charttype", type: "PopupList", id: s.idPrefix+"charttype",
+//               initialdata: charttypes},
+//            charttitle: {setting: "chartitle", type: "PopupList", id: s.idPrefix+"charttitle",
+//               initialdata: null}
             };
 
          SocialCalc.SettingsControlInitializePanel(viewobj.values.panel);
@@ -453,7 +453,7 @@ function DoHelp(s, t) {
 
    var str =
 'HELP TEXT FOLLOWED BY ABOUT TEXT AND LEGAL INFORMATION:<br><br> '+
-'Version 0.7.9<br><br> '+
+'Version 0.7.10<br><br> '+
 '<i>This is an early version of a spreadsheet built on SocialCalc JavaScript code, still in development. '+
 '</i> '+
 '<br><br> '+

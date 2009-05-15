@@ -295,8 +295,9 @@ SocialCalc.TableEditor.prototype.EditorMouseUnregister = function() {return Soci
 SocialCalc.TableEditor.prototype.EditorMouseRange = function(coord) {return SocialCalc.EditorMouseRange(this, coord);};
 
 SocialCalc.TableEditor.prototype.EditorProcessKey = function(ch, e) {return SocialCalc.EditorProcessKey(this, ch, e);};
+SocialCalc.TableEditor.prototype.EditorAddToInput = function(str, prefix) {return SocialCalc.EditorAddToInput(this, str, prefix);};
 SocialCalc.TableEditor.prototype.DisplayCellContents = function() {return SocialCalc.EditorDisplayCellContents(this);};
-SocialCalc.TableEditor.prototype.EditorSaveEdit = function() {return SocialCalc.EditorSaveEdit(this);};
+SocialCalc.TableEditor.prototype.EditorSaveEdit = function(text) {return SocialCalc.EditorSaveEdit(this, text);};
 SocialCalc.TableEditor.prototype.EditorApplySetCommandsToRange = function(cmdline, type) {return SocialCalc.EditorApplySetCommandsToRange(this, cmdline, type);};
 
 SocialCalc.TableEditor.prototype.MoveECellWithKey = function(ch) {return SocialCalc.MoveECellWithKey(this, ch);};
@@ -1411,6 +1412,7 @@ SocialCalc.ProcessEditorDblClick = function(e) {
       case "start":
          if (!editor.ecell) return true; // no ecell
          if (!editor.inputBox) return true; // no input box, so no editing
+         if (editor.inputBox.element.disabled) return true; // multi-line: ignore
          editor.inputBox.ShowInputBox(true);
          editor.inputBox.Focus();
          editor.state = "inputboxdirect";
@@ -1487,6 +1489,7 @@ SocialCalc.EditorProcessKey = function(editor, ch, e) {
             }
          if (!editor.ecell) return true; // no ecell
          if (!editor.inputBox) return true; // no inputBox so no editing
+         editor.inputBox.element.disabled = false; // make sure editable
          editor.state = "input";
          editor.inputBox.ShowInputBox(true);
          editor.inputBox.Focus();
@@ -1594,13 +1597,45 @@ SocialCalc.EditorProcessKey = function(editor, ch, e) {
 
    }
 
+SocialCalc.EditorAddToInput = function(editor, str, prefix) {
+
+   var wval = editor.workingvalues;
+
+   switch (editor.state) {
+      case "start":
+         editor.state = "input";
+         editor.inputBox.ShowInputBox(true);
+         editor.inputBox.element.disabled = false; // make sure editable and overwrite old
+         editor.inputBox.Focus();
+         editor.inputBox.SetText((prefix||"")+str);
+         editor.inputBox.Select("end");
+         wval.partialexpr = "";
+         wval.ecoord = editor.ecell.coord;
+         wval.erow = editor.ecell.row;
+         wval.ecol = editor.ecell.col;
+         editor.RangeRemove();
+         break;
+
+      case "input":
+      case "inputboxdirect":
+         editor.inputBox.element.focus();
+         editor.inputBox.SetText(editor.inputBox.GetText()+str);
+         break;
+
+      default:
+         break;
+      }
+
+   }
+
+
 SocialCalc.EditorDisplayCellContents = function(editor) {
 
    if (editor.inputBox) editor.inputBox.DisplayCellContents();
 
    }
 
-SocialCalc.EditorSaveEdit = function(editor) {
+SocialCalc.EditorSaveEdit = function(editor, text) {
 
    var result, cell, valueinfo, fch, type, value, oldvalue, cmdline;
 
@@ -1608,7 +1643,7 @@ SocialCalc.EditorSaveEdit = function(editor) {
    var wval = editor.workingvalues;
 
    type = "text t";
-   value = editor.inputBox.GetText(); // should not get here if no inputBox
+   value = typeof text == "string" ? text : editor.inputBox.GetText(); // either explicit or from input box
    oldvalue = SocialCalc.GetCellContents(sheetobj, wval.ecoord)+"";
    if (value == oldvalue) { // no change
       return;
@@ -1630,8 +1665,8 @@ SocialCalc.EditorSaveEdit = function(editor) {
       if (valueinfo.type=="n" && value==(valueinfo.value+"")) { // see if don't need "constant"
          type = "value n";
          }
-      else if (valueinfo.type=="t") {
-         type = "text t";
+      else if (valueinfo.type.charAt(0)=="t") {
+         type = "text "+valueinfo.type;
          }
       else if (valueinfo.type=="") {
          type = "text t";
@@ -2896,8 +2931,18 @@ SocialCalc.InputBox.prototype.Select = function(t) {
 
 SocialCalc.InputBoxDisplayCellContents = function(inputbox, coord) {
 
+   var scc = SocialCalc.Constants;
+
    if (!coord) coord = inputbox.editor.ecell.coord;
-   inputbox.SetText(SocialCalc.GetCellContents(inputbox.editor.context.sheetobj, coord));
+   var text = SocialCalc.GetCellContents(inputbox.editor.context.sheetobj, coord);
+   if (text.indexOf("\n")!=-1) {
+      text = scc.s_inputboxdisplaymultilinetext;
+      inputbox.element.disabled = true;
+      }
+   else {
+      inputbox.element.disabled = false;
+      }
+   inputbox.SetText(text);
 
    }
 
@@ -2968,24 +3013,40 @@ SocialCalc.InputBoxOnMouseDown = function(e) {
 
 SocialCalc.InputEcho = function(editor) {
 
-   scc = SocialCalc.Constants;
+   var scc = SocialCalc.Constants;
 
    this.editor = editor; // the TableEditor this belongs to
    this.text = ""; // current value of what is displayed
    this.interval = null; // timer handle
 
-   this.main = null; // main element containing all the others
+   this.container = null; // element containing main echo as well as prompt line
+   this.main = null; // main echo area
+   this.prompt = null;
+
+   this.functionbox = null; // function chooser dialog
+
+   this.container = document.createElement("div");
+   SocialCalc.setStyles(this.container, "display:none;position:absolute;zIndex:10;");
 
    this.main = document.createElement("div");
-   SocialCalc.setStyles(this.main, "display:none;position:absolute;zIndex:10;");
    if (scc.defaultInputEchoClass) this.main.className = scc.defaultInputEchoClass;
    if (scc.defaultInputEchoStyle) SocialCalc.setStyles(this.main, scc.defaultInputEchoStyle);
-
    this.main.innerHTML = "&nbsp;";
 
-   SocialCalc.DragRegister(this.main, true, true, null);
+   this.container.appendChild(this.main);
 
-   editor.toplevel.appendChild(this.main);
+   this.prompt = document.createElement("div");
+   if (scc.defaultInputEchoPromptClass) this.prompt.className = scc.defaultInputEchoPromptClass;
+   if (scc.defaultInputEchoPromptStyle) SocialCalc.setStyles(this.prompt, scc.defaultInputEchoPromptStyle);
+   this.prompt.innerHTML = "";
+
+   this.container.appendChild(this.prompt);
+
+   SocialCalc.DragRegister(this.main, true, true, {MouseDown: SocialCalc.DragFunctionStart, MouseMove: SocialCalc.DragFunctionPosition,
+                  MouseUp: SocialCalc.DragFunctionPosition,
+                  Disabled: null, positionobj: this.container});
+
+   editor.toplevel.appendChild(this.container);
 
    }
 
@@ -3007,26 +3068,50 @@ SocialCalc.ShowInputEcho = function(inputecho, show) {
       cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
       if (cell) {
          position = SocialCalc.GetElementPosition(cell.element);
-         inputecho.main.style.left = (position.left-1)+"px";
-         inputecho.main.style.top = (position.top-1)+"px";
+         inputecho.container.style.left = (position.left-1)+"px";
+         inputecho.container.style.top = (position.top-1)+"px";
          }
-      inputecho.main.style.display = "block";
+      inputecho.container.style.display = "block";
       if (inputecho.interval) window.clearInterval(inputecho.interval); // just in case
       inputecho.interval = window.setInterval(SocialCalc.InputEchoHeartbeat, 50);
       }
    else {
       if (inputecho.interval) window.clearInterval(inputecho.interval);
-      inputecho.main.style.display = "none";
+      inputecho.container.style.display = "none";
       }
 
    }
 
 SocialCalc.SetInputEchoText = function(inputecho, str) {
 
+   var scc = SocialCalc.Constants;
+   var fname, fstr;
    var newstr = SocialCalc.special_chars(str);
+   newstr = newstr.replace(/\n/g,"<br>");
+
    if (inputecho.text != newstr) {
       inputecho.main.innerHTML = newstr;
       inputecho.text = newstr;
+      }
+
+   var parts = str.match(/.*[\+\-\*\/\&\^\<\>\=\,\(]([A-Za-z][A-ZA-z]\w*?)\([^\)]*?$/);
+   if (str.charAt(0)=="=" && parts) {
+      fname = parts[1].toUpperCase();
+      if (SocialCalc.Formula.FunctionList[fname]) {
+         SocialCalc.Formula.FillFunctionInfo(); //  make sure filled
+         fstr = SocialCalc.special_chars(fname+"("+SocialCalc.Formula.FunctionArgString(fname)+")");
+         }
+      else {
+         fstr = scc.ietUnknownFunction+fname;
+         }
+      if (inputecho.prompt.innerHTML != fstr) {
+         inputecho.prompt.innerHTML = fstr;
+         inputecho.prompt.style.display = "block";
+         }
+      }
+   else if (inputecho.prompt.style.display != "none") {
+      inputecho.prompt.innerHTML = "";
+      inputecho.prompt.style.display = "none";
       }
 
    }
@@ -3763,6 +3848,9 @@ SocialCalc.DragUnregister = function(element) {
    var draginfo = SocialCalc.DragInfo;
 
    var i;
+
+   if (!element) return;
+
    for (i=0; i<draginfo.registeredElements.length; i++) {
       if (draginfo.registeredElements[i].element == element) {
          draginfo.registeredElements.splice(i,1);
@@ -3770,7 +3858,7 @@ SocialCalc.DragUnregister = function(element) {
             element.removeEventListener("mousedown", SocialCalc.DragMouseDown, false);
             }
          else { // IE 5+
-            element.removeEvent("onmousedown", SocialCalc.DragMouseDown);
+            element.detachEvent("onmousedown", SocialCalc.DragMouseDown);
             }
          return;
          }
@@ -4229,6 +4317,8 @@ SocialCalc.ButtonMouseOver = function(event) {
 
    SocialCalc.setStyles(bobj.element, bobj.hoverstyle); // set style (if provided)
 
+   if (bobj && bobj.functionobj && bobj.functionobj.MouseOver) bobj.functionobj.MouseOver(e, buttoninfo, bobj);
+
    return;
 
    }
@@ -4256,6 +4346,8 @@ SocialCalc.ButtonMouseOut = function(event) {
       buttoninfo.buttonElement = null;
       buttoninfo.doingHover = false;
       }
+
+   if (bobj && bobj.functionobj && bobj.functionobj.MouseOut) bobj.functionobj.MouseOut(e, buttoninfo, bobj);
 
    return;
 
@@ -4359,6 +4451,8 @@ SocialCalc.ButtonMouseUp = function(event) {
       }
 
    buttoninfo.buttonDown = false;
+
+   if (bobj && bobj.functionobj && bobj.functionobj.MouseUp) bobj.functionobj.MouseUp(e, buttoninfo, bobj);
 
    }
 
