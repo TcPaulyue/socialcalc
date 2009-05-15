@@ -1,19 +1,13 @@
-*** NOTE ***
-The instruction below is now out of date as socialcalc is made into a
-proper Git submodule. It'll be updated with accurate instructions when
-we get a round tuit.
-
-We apologize for the inconvenience.
-*** /NOTE ***
-
-*** FNORD ***
-You might want to set up Dan Bricklin's repo in order to merge changes from there.
+You might want to set up Dan Bricklin's repo in order to merge changes
+from there.
 
   git remote add dbrick git://github.com/DanBricklin/socialcalc.git
+  git fetch dbrick
 
 When you want to integrate Dan's code:
 
-  git pull --rebase dbrick/master
+  git fetch dbrick
+  git merge dbrick/master
 
-You'll need to `git push --force` after doing this rebase operation.
-*** /FNORD ***
+This is preferred over a rebasing pull as it won't require forced pushing
+which disrupts already-checked-out trees.
