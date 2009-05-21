@@ -257,7 +257,14 @@ SocialCalc.TableEditor = function(context) {
                   cmd = "loadclipboard "+
                   SocialCalc.encodeForSave(SocialCalc.ConvertOtherFormatToSave(value, "tab")) + "\n";
                   }
-               cmd += "paste "+editor.ecell.coord+" formulas";
+               var cr;
+               if (editor.range.hasrange) {
+                  cr = SocialCalc.crToCoord(editor.range.left, editor.range.top);
+                  }
+               else {
+                  cr = editor.ecell.coord;
+                  }
+               cmd += "paste "+cr+" formulas";
                editor.EditorScheduleSheetCommands(cmd);
                SocialCalc.KeyboardFocus();
                }, 200);
@@ -1681,6 +1688,12 @@ SocialCalc.EditorAddToInput = function(editor, str, prefix) {
       case "input":
       case "inputboxdirect":
          editor.inputBox.element.focus();
+         if (wval.partialexpr) {
+            editor.inputBox.SetText(wval.partialexpr);
+            wval.partialexpr = "";
+            editor.RangeRemove();
+            editor.MoveECell(wval.ecoord);
+            }
          editor.inputBox.SetText(editor.inputBox.GetText()+str);
          break;
 
