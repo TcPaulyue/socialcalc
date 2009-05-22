@@ -1,4 +1,4 @@
-package SocialCalcServersideNumberFormatting;
+package Socialtext::SocialCalcServersideNumberFormatting;
 #
 # SocialCalcServersideNumberFormatting.pm
 #

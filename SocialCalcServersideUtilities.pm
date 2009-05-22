@@ -1,4 +1,4 @@
-package SocialCalcServersideUtilities;
+package Socialtext::SocialCalcServersideUtilities;
 #
 # SocialCalcServersideUtilites.pm
 #
