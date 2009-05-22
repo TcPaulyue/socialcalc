@@ -1,3 +1,4 @@
+package SocialCalcServersideNumberFormatting;
 #
 # SocialCalcServersideNumberFormatting.pm
 #
@@ -855,3 +856,4 @@ sub parse_format_bracket {
 
    }
 
+1;

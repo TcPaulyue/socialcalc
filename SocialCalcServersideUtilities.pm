@@ -1,3 +1,4 @@
+package SocialCalcServersideUtilities;
 #
 # SocialCalcServersideUtilites.pm
 #
@@ -206,7 +207,7 @@ sub CreateSheet {
    }
 
 #
-# $errorstring = ParseSheetSave($sheet, $str);
+# ParseSheetSave($sheet, $str);
 #
 # Parses the string $str in SocialCalc Sheet Save format and sets the
 # values in $sheet.
@@ -2058,3 +2059,4 @@ sub convert_date_julian_to_gregorian {
 
 }
 
+1;
