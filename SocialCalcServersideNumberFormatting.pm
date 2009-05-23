@@ -31,7 +31,7 @@ package Socialtext::SocialCalcServersideNumberFormatting;
 
    require Exporter;
    our @ISA = qw(Exporter);
-   our @EXPORT = qw(FormatValueForDisplay);
+   our @EXPORT = qw(format_number_with_format_string);
    our $VERSION = '1.0.0';
 
    #

@@ -1639,8 +1639,8 @@ sub FormatValueForDisplay {
 
    my $displayvalue = $value;
 
-   my $valuetype = $cell->{valuetype}; # get type of value to determine formatting
-   my $valuesubtype = substr($valuetype,1);
+   $valuetype = $cell->{valuetype}; # get type of value to determine formatting
+   $valuesubtype = substr($valuetype,1);
    $valuetype = substr($valuetype,0,1);
 
    if ($cell->{errors} || $valuetype eq "e") {
