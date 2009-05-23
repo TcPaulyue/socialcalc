@@ -29,7 +29,7 @@ package Socialtext::SocialCalcServersideUtilities;
    use utf8;
    use Time::Local;
 
-   use SocialCalcServersideNumberFormatting;
+   use Socialtext::SocialCalcServersideNumberFormatting;
 
    require Exporter;
    our @ISA = qw(Exporter);
