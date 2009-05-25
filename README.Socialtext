@@ -11,3 +11,4 @@ When you want to integrate Dan's code:
 
 This is preferred over a rebasing pull as it won't require forced pushing
 which disrupts already-checked-out trees.
+
