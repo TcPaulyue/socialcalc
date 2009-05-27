@@ -1477,6 +1477,10 @@ sub ExpandWikitext {
 
    my ($estring, $sheet, $options, $valueformat) = @_;
 
+   if (ref $options->{callback_object}) {
+       return $options->{callback_object}->expand_wikitext(@_);
+   }
+
    # handle the cases of text-wiki...
 
    if ($valueformat =~ m/^text-wiki(.+)$/) { # something more than just plain wikitext
