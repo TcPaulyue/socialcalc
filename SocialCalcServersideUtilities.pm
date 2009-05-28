@@ -33,7 +33,7 @@ package Socialtext::SocialCalcServersideUtilities;
    our @ISA = qw(Exporter);
    our @EXPORT = qw(CreateSheet ParseSheetSave CreateSheetSave DecodeSpreadsheetSave
       CreateCellHTML CreateCellHTMLSave
-      CoordToCR CRToCoord
+      CoordToCR CRToCoord ParseRange
       CellToString 
       CreateRenderContext RenderSheet
       CalculateCellSkipData PrecomputeSheetFontsAndLayouts CalculateColWidthData 
