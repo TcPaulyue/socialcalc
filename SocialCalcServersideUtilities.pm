@@ -1045,7 +1045,7 @@ sub RenderCell {
 
    # Assemble output
 
-   $outstr .= "<td";
+   $outstr .= qq{<td id="cell_$coord"};
 
    if ($tagstr) {
       $outstr .= qq! $tagstr"!;
