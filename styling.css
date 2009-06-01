@@ -2,26 +2,26 @@
     HEADER
     ------
 */
-#header {
+#sc-header {
     background:#fff;
     margin:0;
     padding:0;
     border-bottom:1px #999 solid;
     height:28px;
 }
-#header h2, #header ul, #header div {
+#sc-header h2, #sc-header ul, #sc-header div {
     float:left;
     margin:0;
     padding:4px 0 0 0;
 }
-#header h2 {
+#sc-header h2 {
     font-size:15px;
     padding:4px 8px;
 }
-#header #buttons {
+#sc-header #buttons {
     padding:4px 8px;
 }
-#header #buttons input {
+#sc-header #buttons input {
     background: #ccc url(images/acc-closed.png) repeat-x scroll top left;
     border-top:1px #ccc solid;
     border-bottom:1px #666 solid;
@@ -29,7 +29,7 @@
     border-left:1px #ccc solid;
     font-weight:bold;
 }
-#header #buttons input.disabled {
+#sc-header #buttons input.disabled {
     background: #ccc url(images/acc-closed.png) repeat-x scroll top left;
     border-top:1px #ccc solid;
     border-bottom:1px #999 solid;
@@ -37,13 +37,13 @@
     border-left:1px #ccc solid;
     color:#999;
 }
-#header ul {
+#sc-header ul {
     float:right;
     margin:0 12px 0 0;
     padding:8px 0 0 0;
     list-style-type:none;
 }
-#header ul li {
+#sc-header ul li {
     display:inline;
     border-top:1px #999 solid;
     border-left:1px #999 solid;
@@ -53,11 +53,11 @@
     background:#999;
     padding-bottom:4px;
 }
-#header ul li.selected {
+#sc-header ul li.selected {
     background:#fff;
     border-bottom:1px #fff solid;
 }
-#header ul li a {
+#sc-header ul li a {
     text-decoration:none;
     color:#333;
     margin:4px;
