@@ -826,7 +826,7 @@ sub RenderTableTag {
 
    my ($context, $options) = @_;
 
-   return qq!<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: $context->{totalwidth}px">!;
+   return qq!<table class="st-ss" cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: $context->{totalwidth}px">!;
 
    }
 
