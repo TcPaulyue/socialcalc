@@ -71,7 +71,14 @@ body
 </style>
 </head>
 <body onresize="doresize();">
-    <div id="header">
+<!--
+[% IF UA_is_MacOSX %]
+    [% SET hotkey = 'Cmd' %]
+[% ELSE %]
+    [% SET hotkey = 'Ctrl' %]
+[% END %]
+-->
+    <div id="sc-header">
         <div id="buttons">
             <input id="st-save-button-link" type="button" name="save" value="Save" title="Save Changes" />
             <input id="st-cancel-button-link"  type="button" name="cancel" value="Cancel" title="Cancel Edit" />
@@ -96,15 +103,6 @@ body
                         <img class="selector" src="selector.png" />
                     </span>
                     <img id="st-redo-button-link" src="images/redo.png" title="Redo"/>
-
-<!--
-[% IF UA_is_MacOSX %]
-    [% SET hotkey = 'Cmd' %]
-[% ELSE %]
-    [% SET hotkey = 'Ctrl' %]
-[% END %]
--->
-
                     <img id="st-cut-button-link" src="images/cut.png" title="Cut (Press [% hotkey %]-X to cut to other applications)" />
                     <img id="st-copy-button-link" src="images/copy.png" title="Copy (Press [% hotkey %]-C to copy to other applications)" />
                     <img id="st-paste-button-link" src="images/paste.png" title="Paste (Press [% hotkey %]-V to paste from other applications)" />
