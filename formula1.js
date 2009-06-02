@@ -4458,11 +4458,6 @@ SocialCalc.Formula.FindInSheetCache = function(sheetname) {
       return null; // return not found
       }
 
-   if (sfsc.loadsheet) { // Deprecated old format synchronous callback
-alert("Using SocialCalc.Formula.SheetCache.loadsheet - deprecated");
-      return SocialCalc.Formula.AddSheetToCache(nsheetname, sfsc.loadsheet(nsheetname));
-      }
-
    sfsc.waitingForLoading = nsheetname; // let recalc loop know that we have a sheet to load
 
    return null; // return not found
