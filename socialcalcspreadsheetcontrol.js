@@ -933,19 +933,19 @@ SocialCalc.InitializeSpreadsheetControl = function(spreadsheet, node, height, wi
 
    // create the tabbed UI at the top
 
-   html = '<div><div class="socialcalc-toolbar-background">';
+   html = '<div><div style="'+spreadsheet.toolbarbackground+'padding:12px 10px 10px 4px;height:40px;">';
 
    for (i=0; i<tabs.length; i++) {
       html += tabs[i].html;
       }
 
    html += '</div>'+
-      '<div class="socialcalc-spreadsheet-tab-background">'+
+      '<div style="'+spreadsheet.tabbackground+'padding-bottom:4px;margin:0px 0px 8px 0px;">'+
       '<table cellpadding="0" cellspacing="0"><tr>';
 
    for (i=0; i<tabs.length; i++) {
-      html += '  <td id="%id.' + tabs[i].name + 'tab" class="' +
-         (i==0 ? "socialcalc-spreadsheet-tabselected" : "socialcalc-spreadsheet-tabplain") +
+      html += '  <td id="%id.' + tabs[i].name + 'tab" style="' +
+         (i==0 ? spreadsheet.tabselectedCSS : spreadsheet.tabplainCSS) +
          '" onclick="%s.SetTab(this);">' + tabs[i].text + '</td>';
       }
 
@@ -1046,7 +1046,6 @@ spreadsheet.Buttons = {
    spreadsheet.viewheight = spreadsheet.height-spreadsheet.nonviewheight;
    spreadsheet.editorDiv=spreadsheet.editor.CreateTableEditor(spreadsheet.width, spreadsheet.viewheight);
 
-   spreadsheet.editorDiv.className = "socialcalc-spreadsheet-editor";
    spreadsheet.spreadsheetDiv.appendChild(spreadsheet.editorDiv);
 
    for (vname in views) {
@@ -1228,11 +1227,11 @@ SocialCalc.SetTab = function(obj) {
       if (tname==newtab) {
          newtabnum = i;
          tools[tname].style.display = "block";
-         menutabs[tname].className = "socialcalc-spreadsheet-tabselected";
+         menutabs[tname].style.cssText = spreadsheet.tabselectedCSS;
          }
       else {
          tools[tname].style.display = "none";
-         menutabs[tname].className = "socialcalc-spreadsheet-tabplain";
+         menutabs[tname].style.cssText = spreadsheet.tabplainCSS;
          }
       }
 
