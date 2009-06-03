@@ -80,10 +80,10 @@ body
         <h2 id="title">Spreadsheet Name</h2>
         <img src="images/expand.png" style="float:right;width:16px;height:16px;margin-right:4px;margin-top:4px" />
         <ul id="tabs">
-            <li class="selected"><a href="#edit-toolbar">Edit</a></li>
-            <li><a href="#preview-toolbar">Preview</a></li>
-            <li><a href="#revisions-toolbar">Revisions</a></li>
-            <li><a href="#audit-toolbar">Audit</a></li>
+            <li class="selected"><a id="st-edit-mode-button-link" href="#edit-toolbar">Edit</a></li>
+            <li><a id="st-preview-mode-button-link" href="#preview-toolbar">Preview</a></li>
+            <li><a id="st-revisions-mode-button-link" href="#revisions-toolbar">Revisions</a></li>
+            <li><a id="st-audit-mode-button-link" href="#audit-toolbar">Audit</a></li>
         </ul>
     </div>
     <div id="edit-toolbar">
@@ -96,9 +96,18 @@ body
                         <img class="selector" src="selector.png" />
                     </span>
                     <img id="st-redo-button-link" src="images/redo.png" title="Redo"/>
-                    <img id="st-cut-button-link" src="images/cut.png" title="Cut" />
-                    <img id="st-copy-button-link" src="images/copy.png" title="Copy" />
-                    <img id="st-paste-button-link" src="images/paste.png" title="Paste" />
+
+<!--
+[% IF UA_is_MacOSX %]
+    [% SET hotkey = 'Cmd' %]
+[% ELSE %]
+    [% SET hotkey = 'Ctrl' %]
+[% END %]
+-->
+
+                    <img id="st-cut-button-link" src="images/cut.png" title="Cut (Press [% hotkey %]-X to cut to other applications)" />
+                    <img id="st-copy-button-link" src="images/copy.png" title="Copy (Press [% hotkey %]-C to copy to other applications)" />
+                    <img id="st-paste-button-link" src="images/paste.png" title="Paste (Press [% hotkey %]-V to paste from other applications)" />
                     <img id="st-erase-button-link" src="images/erase.png" title="Erase" />
                 </div>
             </div>
@@ -107,21 +116,48 @@ body
             <span class="toggler" id="format-toggler">Format ▶</span>
             <div id="format-wrapper" class="wrapper">
                 <div class="icon-set">
-                    <img id="st-bold-button-link" src="images/bold.png" />
-                    <img id="st-italic-button-link" src="images/italic.png" />
-                    <img id="st-underline-button-link" src="images/underline.png" />
-                    <img id="st-strikethrough-button-link" src="images/strikethrough.png" />
+                    <img id="st-bold-button-link" src="images/bold.png" title="Bold" />
+                    <img id="st-italic-button-link" src="images/italic.png" title="Italic" />
+                    <img id="st-underline-button-link" src="images/underline.png" title="Underline" />
+                    <img id="st-strikethrough-button-link" src="images/strikethrough.png" title="Strike Through" />
                 </div>
                 <div class="separator">&nbsp;</div>
                 <div class="icon-set">
-                    <img src="images/font-color.png" />
-                    <img src="images/bg-color.png" />
-                    <img src="images/swap-colors.png" />
-                    <img src="images/borders.png" />
+                    <img id="st-color-button-link" src="images/font-color.png" title="Text Color" />
+                    <img id="st-bgcolor-button-link" src="images/bg-color.png" title="Background Color" />
+                    <img id="st-swapcolors-button-link" src="images/swap-colors.png" title="Swap foreground and background colors" />
+                    <img id="st-cell-borders-button-link" src="images/borders.png" title="Borders On/Off" />
                 </div>
                 <div class="separator">&nbsp;</div>
                 <div class="form-set">
-                    <select><option>Arial</option><option>Georgia</option><option>Tahoma</option><option>Trebuchet MS</option><option>Courier</option></select><select><option>9</option><option>10</option><option>12</option><option>15</option><option>21</option><option>28</option></select><select><option>Format</option><option>1234</option><option>1,234</option><option>1,234.00</option><option>$1,234.00</option><option>2009-05-01</option></select>
+                    <select id="st-spreadsheet-cell-font-family"><option>Arial</option><option>Georgia</option><option>Tahoma</option><option>Trebuchet MS</option><option>Courier</option></select>
+                    <select id="st-spreadsheet-cell-font-size"><option>9</option><option>10</option><option>12</option><option>15</option><option>21</option><option>28</option></select>
+                    <select id="st-spreadsheet-cell-number-format">
+                        <option value="">Format</option>
+                        <option value="0">1234</option>
+                        <option value="#,##0">1,234</option>
+                        <option value="#,##0.0">1,234.5</option>
+                        <option value="#,##0.00">1,234.56</option>
+                        <option value="#,##0.000">1,234.567</option>
+
+                        <option value="#,##0%">1,234%</option>
+                        <option value="#,##0.0%">1,234.5%</option>
+
+                        <option value="#,##0_);(#,##0)">(1,234)</option>
+                        <option value="#,##0.0_);(#,##0.0)">(1,234.5)</option>
+                        <option value="#,##0.00_);(#,##0.00)">(1,234.56)</option>
+
+                        <option value="00">00</option>
+                        <option value="000">000</option>
+                        <option value="0000">0000</option>
+
+                        <option value="$#,##0.00">$1,234.56</option>
+                        <option value="yyyy-mm-dd">2008-05-29</option>
+                        <option value="hh:mm:ss">01:23:45</option>
+                        <option value="yyyy-mm-dd hh:mm:ss">2008-05-29 01:23:45</option>
+
+                        <option value="hidden">Hidden</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -129,11 +165,16 @@ body
             <span class="toggler" id="align-toggle">Align ▶</span>
             <div id="align-wrapper" class="wrapper">
                 <div class="icon-toggle">
-                    <img src="images/align-left.png" /><img src="images/align-center.png" /><img class="selected" src="align-right.png" /><img src="images/align-just.png" />
+                    <img id="st-left-button-link" src="images/align-left.png" title="Left" />
+                    <img id="st-center-button-link" src="images/align-center.png" title="Center" />
+                    <img id="st-right-button-link" src="images/align-right.png" title="Right" />
+                    <img id="st-justify-button-link" src="images/align-just.png" title="Justify" />
                 </div>
                 <div class="separator">&nbsp;</div>
                 <div class="icon-toggle">
-                    <img src="images/align-top.png" class="selected" /><img src="images/align-middle.png" /><img src="images/align-bottom.png" />
+                    <img id="st-top-button-link" src="images/align-top.png" title="Top" />
+                    <img id="st-middle-button-link" src="images/align-middle.png" title="Middle" />
+                    <img id="st-bottom-button-link" src="images/align-bottom.png" title="Bottom" />
                 </div>
             </div>
         </div>
@@ -141,7 +182,11 @@ body
             <span class="toggler" id="insert-toggle">Insert ▶</span>
             <div id="insert-wrapper" class="wrapper">
                 <div class="icon-set">
-                    <img src="images/insert-link.png" /><img src="images/insert-widget.png" /><img src="images/insert-image.png" /><img src="images/formula.png" /><img src="images/sum.png" />
+                    <img id="st-insert-link-button-link" src="images/insert-link.png" title="Link" />
+                    <img id="st-insert-widget-button-link" src="images/insert-widget.png" title="Widget" />
+                    <img id="st-insert-image-button-link" src="images/insert-image.png" title="Image" />
+                    <img id="st-insert-formula-button-link" src="images/formula.png" title="Formula" />
+                    <img id="st-sum-range-button-link" src="images/sum.png" title="Sum" />
                 </div>
             </div>
         </div>
@@ -149,37 +194,60 @@ body
             <span class="toggler" id="move-toggle">Move ▶</span>
             <div id="move-wrapper" class="wrapper">
                 <div class="icon-set">
-                    <img src="images/fill-down.png" /><img src="images/fill-right.png" />
+                    <img id="st-filldown-button-link" src="images/fill-down.png" title="Fill Down" />
+                    <img id="st-fillright-button-link" src="images/fill-right.png" title="Fill Right" />
                 </div>
                 <div class="separator">&nbsp;</div>
                 <div class="icon-set">
-                    <img src="images/mark.png" /><img src="images/move-paste.png" /><img src="images/move-insert.png" />
+                    <img id="st-movemark-button-link" src="images/mark.png" title="Mark/Clear Move Source" />
+                    <img id="st-movepaste-button-link" src="images/move-paste.png" title="Move Paste" />
+                    <img id="st-moveinsert-button-link" src="images/move-insert.png" title="Move Insert" />
                 </div>
                 <div class="separator">&nbsp;</div>
                 <div class="icon-set">
-                    <img src="images/insert-row.png" /><img src="images/insert-column.png" /><img src="images/delete-row.png" /><img src="images/delete-column.png" /><img class="selected" src="merge.png" />
+                    <img id="st-insert-row-button-link" src="images/insert-row.png" title="Insert Row" />
+                    <img id="st-insert-col-button-link" src="images/insert-column.png" title="Insert Column" />
+                    <img id="st-delete-row-button-link" src="images/delete-row.png" title="Delete Row" />
+                    <img id="st-delete-col-button-link" src="images/delete-column.png" title="Delete Column" />
+                    <img id="st-merge-button-link" src="images/merge.png" title="Merge Selected Cells" />
                 </div>
             </div>
         </div>
     </div>
-    <div id="preview-toolbar" class="hidden"><p>PREVIEW</p></div>
-    <div id="revisions-toolbar" class="hidden"><p>REVISIONS</p></div>
-    <div id="audit-toolbar" class="hidden"><p>TOOLBAR</p></div>
+    <div id="st-spreadsheet-preview-toolbar" class="preview hidden"><br><br></div>
+    <div id="st-spreadsheet-revisions-toolbar" class="revisions hidden">
+        <a class="previous" href="#">← </a>
+        <input name="revision-number" />
+        <a class="next" href="#">→</a>
+        <br/>
+        <span class="label">By:</span>
+        <span class="author"></span>
+        <br/>
+        <span class="label">On:</span>
+        <span class="time"></span>
+    </div>
+
+    <div id="st-spreadsheet-audit-toolbar" class="audit hidden"></div>
+
     <div id="formula">
         <div class="icon-set">
-            <img src="images/sum.png" /><img src="images/formula.png" /><img src="images/names.png" /><img src="images/comment.png" />
+            <img id="st-sum-range-button-link" src="images/sum.png" title="Sum Range" />
+            <img id="st-formula-button-link" src="images/formula.png" title="Insert Formula" />
+            <img id="st-name-button-link" src="images/names.png" title="Name Data" />
+            <img id="st-comment-button-link" src="images/comment.png" title="Cell Comment" />
         </div>
         <div class="separator">&nbsp;</div>
         <div id="cell-detail-small-wrapper" class="open">
-            <input id="cell-detail-small" type="text" name="cell-detail" value="=SUM(B1:B25)*SUM(C1:C25)/A26" />
+            <input id="cell-detail-small" type="text" name="cell-detail" value="" />
             <div class="icon-set">
-                <img src="images/multi-line.png" />
+                <img id="st-multiline-button-link" src="images/multi-line.png" title="Show multiple lines of input" />
             </div>
         </div>
         <div id="cell-detail-large-wrapper" class="hidden">
-            <textarea id="cell-detail-large">=SUM(B1:B25)*SUM(C1:C25)/A26</textarea>
+            <textarea id="cell-detail-large">
+            </textarea>
             <div class="icon-set">
-                <img src="images/one-line.png" />
+                <img id="st-oneline-button-link" src="images/one-line.png" title="Show one line of input" />
             </div>
         </div>
     </div>
