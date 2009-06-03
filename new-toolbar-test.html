@@ -2,7 +2,7 @@
 <html>
 <head>
 <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>SS Ctrl Test 1</title>
+<title>Spreadsheet Name</title>
 <script type="text/javascript" src="socialcalcconstants.js"></script>
 <script type="text/javascript" src="socialcalc-3.js"></script>
 <script type="text/javascript" src="socialcalctableeditor.js"></script>
@@ -12,6 +12,55 @@
 <script type="text/javascript" src="toolbar.js"></script>
 <script type="text/javascript" src="jquery-1.3.2.min.js"></script>
 <link rel="stylesheet" type="text/css" href="socialcalc.css">
+    <link rel="stylesheet" href="styling.css" type="text/css" media="screen" title="no title" charset="utf-8" />
+    <script type="text/javascript" charset="utf-8" src="jquery-1.3.2.min.js">
+    </script>
+    <script type="text/javascript" charset="utf-8" src="jquery-ui.min.js">
+    </script>
+    <script type="text/javascript" charset="utf-8">
+var accordions = {
+    edit: null,
+    format: null,
+    align: null,
+    insert: null,
+    move: null
+}
+
+closeItem = function(accordion){
+    $(accordion).removeClass('open').addClass('closed');
+}
+
+openItem = function(accordion){
+    $(accordion).removeClass('closed').addClass('open');
+}
+
+openToggle = function(ev) {
+    thisAccordian = $(ev.target).parent();
+    thisName = thisAccordian.attr('id').split('-')[0];
+    if (thisAccordian.hasClass('closed')) {
+        thisAccordian.removeClass('closed').addClass('open');
+    }
+    $.each(accordions, function(key, accordion){
+        name = accordion.attr('id').split('-')[0];
+        if (thisName != name) {
+            accordion.removeClass('open').addClass('closed');
+        }
+    });
+}
+
+closeToggle = function(ev) {
+}
+
+$(document).ready(function() {
+    $.each(accordions, function(key, accordion){
+        accordions[key] = $('#'+key);
+        $('.toggler', accordion).toggle(openToggle, closeToggle);
+    });
+});
+        $(function(){
+            $('#tabs').tabs();
+        });
+    </script>
 <style>
 body
  {font-family:verdana,helvetica,sans-serif;font-size:small;}
@@ -22,7 +71,121 @@ body
 </style>
 </head>
 <body onresize="doresize();">
+    <div id="header">
+        <div id="buttons">
+            <input id="st-save-button-link" type="button" name="save" value="Save" title="Save Changes" />
+            <input id="st-cancel-button-link"  type="button" name="cancel" value="Cancel" title="Cancel Edit" />
+            <input id="st-recalc-button-link" class="disabled" type="button" name="refresh" value="Refresh" title="Refresh Sheet" />
+        </div>
+        <h2 id="title">Spreadsheet Name</h2>
+        <img src="images/expand.png" style="float:right;width:16px;height:16px;margin-right:4px;margin-top:4px" />
+        <ul id="tabs">
+            <li class="selected"><a href="#edit-toolbar">Edit</a></li>
+            <li><a href="#preview-toolbar">Preview</a></li>
+            <li><a href="#revisions-toolbar">Revisions</a></li>
+            <li><a href="#audit-toolbar">Audit</a></li>
+        </ul>
+    </div>
+    <div id="edit-toolbar">
+        <div class="accordion open" id="edit">
+            <span class="toggler" id="edit-toggle">◀ Edit</span>
+            <div id="editing-wrapper" class="wrapper">
+                <div class="icon-action">
+                    <span class="icon-selector">
+                        <img id="st-undo-button-link" src="images/undo.png" title="Undo" />
+                        <img class="selector" src="selector.png" />
+                    </span>
+                    <img id="st-redo-button-link" src="images/redo.png" title="Redo"/>
+                    <img id="st-cut-button-link" src="images/cut.png" title="Cut" />
+                    <img id="st-copy-button-link" src="images/copy.png" title="Copy" />
+                    <img id="st-paste-button-link" src="images/paste.png" title="Paste" />
+                    <img id="st-erase-button-link" src="images/erase.png" title="Erase" />
+                </div>
+            </div>
+        </div>
+        <div class="accordion closed" id="format">
+            <span class="toggler" id="format-toggler">Format ▶</span>
+            <div id="format-wrapper" class="wrapper">
+                <div class="icon-set">
+                    <img id="st-bold-button-link" src="images/bold.png" />
+                    <img id="st-italic-button-link" src="images/italic.png" />
+                    <img id="st-underline-button-link" src="images/underline.png" />
+                    <img id="st-strikethrough-button-link" src="images/strikethrough.png" />
+                </div>
+                <div class="separator">&nbsp;</div>
+                <div class="icon-set">
+                    <img src="images/font-color.png" />
+                    <img src="images/bg-color.png" />
+                    <img src="images/swap-colors.png" />
+                    <img src="images/borders.png" />
+                </div>
+                <div class="separator">&nbsp;</div>
+                <div class="form-set">
+                    <select><option>Arial</option><option>Georgia</option><option>Tahoma</option><option>Trebuchet MS</option><option>Courier</option></select><select><option>9</option><option>10</option><option>12</option><option>15</option><option>21</option><option>28</option></select><select><option>Format</option><option>1234</option><option>1,234</option><option>1,234.00</option><option>$1,234.00</option><option>2009-05-01</option></select>
+                </div>
+            </div>
+        </div>
+        <div class="accordion closed" id="align">
+            <span class="toggler" id="align-toggle">Align ▶</span>
+            <div id="align-wrapper" class="wrapper">
+                <div class="icon-toggle">
+                    <img src="images/align-left.png" /><img src="images/align-center.png" /><img class="selected" src="align-right.png" /><img src="images/align-just.png" />
+                </div>
+                <div class="separator">&nbsp;</div>
+                <div class="icon-toggle">
+                    <img src="images/align-top.png" class="selected" /><img src="images/align-middle.png" /><img src="images/align-bottom.png" />
+                </div>
+            </div>
+        </div>
+        <div class="accordion closed" id="insert">
+            <span class="toggler" id="insert-toggle">Insert ▶</span>
+            <div id="insert-wrapper" class="wrapper">
+                <div class="icon-set">
+                    <img src="images/insert-link.png" /><img src="images/insert-widget.png" /><img src="images/insert-image.png" /><img src="images/formula.png" /><img src="images/sum.png" />
+                </div>
+            </div>
+        </div>
+        <div class="accordion closed" id="move"> 
+            <span class="toggler" id="move-toggle">Move ▶</span>
+            <div id="move-wrapper" class="wrapper">
+                <div class="icon-set">
+                    <img src="images/fill-down.png" /><img src="images/fill-right.png" />
+                </div>
+                <div class="separator">&nbsp;</div>
+                <div class="icon-set">
+                    <img src="images/mark.png" /><img src="images/move-paste.png" /><img src="images/move-insert.png" />
+                </div>
+                <div class="separator">&nbsp;</div>
+                <div class="icon-set">
+                    <img src="images/insert-row.png" /><img src="images/insert-column.png" /><img src="images/delete-row.png" /><img src="images/delete-column.png" /><img class="selected" src="merge.png" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="preview-toolbar" class="hidden"><p>PREVIEW</p></div>
+    <div id="revisions-toolbar" class="hidden"><p>REVISIONS</p></div>
+    <div id="audit-toolbar" class="hidden"><p>TOOLBAR</p></div>
+    <div id="formula">
+        <div class="icon-set">
+            <img src="images/sum.png" /><img src="images/formula.png" /><img src="images/names.png" /><img src="images/comment.png" />
+        </div>
+        <div class="separator">&nbsp;</div>
+        <div id="cell-detail-small-wrapper" class="open">
+            <input id="cell-detail-small" type="text" name="cell-detail" value="=SUM(B1:B25)*SUM(C1:C25)/A26" />
+            <div class="icon-set">
+                <img src="images/multi-line.png" />
+            </div>
+        </div>
+        <div id="cell-detail-large-wrapper" class="hidden">
+            <textarea id="cell-detail-large">=SUM(B1:B25)*SUM(C1:C25)/A26</textarea>
+            <div class="icon-set">
+                <img src="images/one-line.png" />
+            </div>
+        </div>
+    </div>
+
 <form name="f0" action="" method="POST">
+<!--
 <div style="padding:6px;background-color:#80A9F3;">
 <span style="font-weight:bold;color:white;">ssctrltest1.html</span>
 <input type="button" name="savespreadsheet" value="Save" onclick="dosave();" class="smaller">
@@ -39,11 +202,14 @@ body
 <input class="hide" type="button" value="New Copy" onclick="newcopy();" class="smaller">
 <input type="button" value="Sum" onclick="dosum();" class="smaller">
 <input type="button" value="Sum2" onclick="dosum2();" class="smaller">
+-->
 <textarea id="savestr" style="display:none;"></textarea>
 <input type="hidden" name="newstr" id="newdata" value="">
 <input type="hidden" name="pagename" value="$pagename">
 <input type="hidden" name="sheetname" value="$sheetname">
+<!--
 </div>
+-->
 </form>
 <div id="msg" style="position:absolute;right:15px;">
 <input type="button" style="font-size:x-small;" value="Clear" onclick="addmsg('',true);"><br>
