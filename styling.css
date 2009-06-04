@@ -221,6 +221,12 @@
     background:#999;
     border-bottom:1px #666 solid;
 }
+#socialcalc-controls #formula.multiline {
+    height: 70px;
+}
+#socialcalc-controls #formula.multiline #st-spreadsheet-formular-input {
+    height: 64px;
+}
 #socialcalc-controls #st-spreadsheet-formular-input {
     float:left;
     border:1px #999 solid;
