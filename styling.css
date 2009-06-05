@@ -29,6 +29,7 @@
     border-left:1px #ccc solid;
     font-weight:bold;
     height: 21px;
+    width: 70px;
 }
 #socialcalc-header #buttons input.disabled {
     background: #ccc url(/nlw/plugin/socialcalc/images/socialcalc/acc-closed.png) repeat-x scroll top left;
@@ -236,7 +237,7 @@
     line-height:16px;
     background:#ffc;
     font-family: Consolas, "Droid Sans Mono", "Courier New", Courier, monospace;
-    width:85%;
+    width:83%;
     margin-right:-1px;
     font-weight:bold;
 }
