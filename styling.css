@@ -228,17 +228,21 @@
 #socialcalc-controls #formula.multiline #st-spreadsheet-formular-input {
     height: 64px;
 }
-#socialcalc-controls #st-spreadsheet-formular-input {
+#socialcalc-controls #st-spreadsheet-formular-wrapper {
     float:left;
+    width:83%;
+    margin-right:-1px;
+}
+
+#socialcalc-controls #st-spreadsheet-formular-input, #formularFrame {
+    width: 99%;
     border:1px #999 solid;
     font-size: 13px;
-    padding:3px 5px 1px 5px;
     height:16px;
+    padding:3px 5px 1px 5px;
     line-height:16px;
     background:#ffc;
     font-family: Consolas, "Droid Sans Mono", "Courier New", Courier, monospace;
-    width:83%;
-    margin-right:-1px;
     font-weight:bold;
 }
 #socialcalc-controls .hidden {
