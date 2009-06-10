@@ -35,7 +35,7 @@ package Socialtext::SocialCalcServersideUtilities;
       CreateCellHTML CreateCellHTMLSave
       CoordToCR CRToCoord ParseRange
       CellToString 
-      CreateRenderContext RenderSheet
+      CreateRenderContext RenderSheet CreateCSV
       CalculateCellSkipData PrecomputeSheetFontsAndLayouts CalculateColWidthData 
       RenderTableTag RenderColGroup RenderSizingRow RenderCell);
    our $VERSION = '1.0.0';
