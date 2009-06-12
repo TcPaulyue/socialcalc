@@ -274,6 +274,37 @@ SocialCalc.TableEditor = function(context) {
             editor.EditorScheduleSheetCommands("undo");
             return false;
 
+         case "[ctrl-s]": // !!!! temporary hack
+            if (!SocialCalc.Constants.AllowCtrlS) break;
+            window.setTimeout(
+               function() {
+                  var s = SocialCalc.GetSpreadsheetControlObject();
+                  if (!s) return;
+                  var editor = s.editor;
+                  var sheet = editor.context.sheetobj;
+                  var cell = sheet.GetAssuredCell(editor.ecell.coord);
+                  var ntvf = cell.nontextvalueformat ? sheet.valueformats[cell.nontextvalueformat-0] || "" : "";
+                  var newntvf = window.prompt("Advanced Feature:\n\nCustom Numeric Format or Command", ntvf);
+                  if (newntvf != null) { // not cancelled
+                     if (newntvf.match(/^cmd:/)) {
+                        cmd = newntvf.substring(4); // execute as command
+                        }
+                     else {
+                        if (editor.range.hasrange) {
+                           sel = SocialCalc.crToCoord(editor.range.left, editor.range.top)+
+                              ":"+SocialCalc.crToCoord(editor.range.right, editor.range.bottom);
+                           }
+                        else {
+                          sel = editor.ecell.coord;
+                           }
+                        cmd = "set "+sel+" nontextvalueformat "+newntvf;
+                        }
+                     editor.EditorScheduleSheetCommands(cmd);
+                     }
+                  },
+               200);
+            return false;
+
          default:
             break;
             }
@@ -4705,6 +4736,7 @@ SocialCalc.keyboardTables = {
 
    controlKeysIE: {
       67: "[ctrl-c]",
+      83: "[ctrl-s]",
       86: "[ctrl-v]",
       88: "[ctrl-x]",
       90: "[ctrl-z]"
@@ -4720,6 +4752,7 @@ SocialCalc.keyboardTables = {
 
    controlKeysOpera: {
       67: "[ctrl-c]",
+      83: "[ctrl-s]",
       86: "[ctrl-v]",
       88: "[ctrl-x]",
       90: "[ctrl-z]"
@@ -4733,6 +4766,7 @@ SocialCalc.keyboardTables = {
 
    controlKeysSafari: {
       99: "[ctrl-c]",
+      115: "[ctrl-s]",
       118: "[ctrl-v]",
       120: "[ctrl-x]",
       122: "[ctrl-z]"
@@ -4751,6 +4785,7 @@ SocialCalc.keyboardTables = {
 
    controlKeysFirefox: {
       99: "[ctrl-c]",
+      115: "[ctrl-s]",
       118: "[ctrl-v]",
       120: "[ctrl-x]",
       122: "[ctrl-z]"
