@@ -3400,6 +3400,8 @@ mainloop:
             }
          }
 
+      sheetref = false; // make sure off when bump back up
+
       checkinfo[coord] = true; // this one is finished
       if (!recalcdata.firstcalc) { // add to calclist
          recalcdata.firstcalc = coord;
@@ -4776,7 +4778,7 @@ SocialCalc.format_text_for_display = function(rawvalue, valuetype, valueformat, 
    else if (valueformat=="text-wiki") { // wiki text
       displayvalue = (SocialCalc.Callbacks.expand_markup
                       && SocialCalc.Callbacks.expand_markup(displayvalue, sheetobj, linkstyle)) || // do old wiki markup
-                     SocialCalc.special_chars("wiki-text:"+displayvalue);
+                     SocialCalc.special_chars(displayvalue);
       }
    else if (valueformat=="text-url") { // text is a URL for a link
       dvsc = SocialCalc.special_chars(displayvalue);
