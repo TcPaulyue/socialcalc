@@ -4767,7 +4767,7 @@ SocialCalc.format_text_for_display = function(rawvalue, valuetype, valueformat, 
       if (valuesubtype=="l") valueformat="text-link";
       if (!valuesubtype) valueformat="text-plain";
       }
-   if (valueformat=="text-html") { // HTML - output as it as is
+   if (valueformat=="text-html" || valueformat == "text-wiki") { // HTML or Wiki-text - output as it as is
       ;
       }
    else if (SocialCalc.Callbacks.expand_wiki && /^text-wiki/.test(valueformat)) { // do general wiki markup
