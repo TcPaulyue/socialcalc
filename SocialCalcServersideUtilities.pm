@@ -1798,7 +1798,9 @@ sub format_text_for_display {
       $valueformat = "text-plain" unless $valuesubtype;
       }
    if ($valueformat eq "text-html") { # HTML - output as it as is
-      ;
+       if ($displayvalue =~ /^<!-- wiki:(.*?) -->/s) {
+           $displayvalue = ExpandWikitext($1, $sheet, $options, 'text-wiki');
+       }
       }
    elsif ($valueformat =~ m/^text-wiki/) { # wiki text
       $displayvalue = ExpandWikitext($displayvalue, $sheet, $options, $valueformat); # do wiki markup
