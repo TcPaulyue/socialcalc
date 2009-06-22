@@ -1605,6 +1605,7 @@ SocialCalc.EditorProcessKey = function(editor, ch, e) {
             }
          if (!editor.ecell) return true; // no ecell
          if (!editor.inputBox) return true; // no inputBox so no editing
+         if (editor.inputBox.element.style.display == 'none') return true; // no inputBox display, so no editing
          editor.inputBox.element.disabled = false; // make sure editable
          editor.state = "input";
          editor.inputBox.ShowInputBox(true);
