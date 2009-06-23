@@ -3050,10 +3050,16 @@ SocialCalc.InputBox.prototype.Blur = function() {return this.element.blur();};
 SocialCalc.InputBox.prototype.Select = function(t) {
    switch (t) {
       case "end":
-         if (this.element.selectionStart!=undefined) {
+         if (document.selection && document.selection.createRange) {
+            /* IE 4+ - Safer than setting .selectionEnd as it also works for Textareas. */
+            var range = document.selection.createRange().duplicate();
+            range.moveToElementText(this.element);
+            range.collapse(false);
+            range.select();
+         } else if (this.element.selectionStart!=undefined) {
             this.element.selectionStart=this.element.value.length;
             this.element.selectionEnd=this.element.value.length;
-            }
+         }
          break;
       }
    };
