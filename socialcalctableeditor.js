@@ -1536,6 +1536,7 @@ SocialCalc.EditorOpenCellEdit = function(editor) {
 
    if (!editor.ecell) return true; // no ecell
    if (!editor.inputBox) return true; // no input box, so no editing
+   if (editor.inputBox.element.style.display == 'none') return true; // no inputBox display, so no editing
    if (editor.inputBox.element.disabled) return true; // multi-line: ignore
    editor.inputBox.ShowInputBox(true);
    editor.inputBox.Focus();
