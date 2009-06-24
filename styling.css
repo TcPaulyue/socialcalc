@@ -117,9 +117,9 @@
     border-right:1px #ccc solid;
     border-left:1px #999 solid;
     padding:0 8px 1px 4px;
+    cursor:pointer;
 }
 #socialcalc-controls .open:hover .toggler {
-    cursor:pointer;
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/acc-open-hover.png);
 }
 #socialcalc-controls .closed .toggler {
@@ -130,9 +130,9 @@
     border-right:1px #999 solid;
     border-left:1px #fff solid;
     padding:0 4px 1px 8px;
+    cursor:pointer;
 }
 #socialcalc-controls .closed:hover .toggler {
-    cursor:pointer;
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/acc-closed-hover.png);
 }
 #socialcalc-controls .icon-toggle, .icon-set, .form-set, .icon-action {
@@ -154,13 +154,13 @@
     width:21px;
     height:20px;
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/unselected.png);
+    cursor: pointer;
 }
 #socialcalc-controls img.selector {
     width:10px;
 }
 #socialcalc-controls img:hover {
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/hover.png);
-    cursor: pointer;
 }
 #socialcalc-controls img.selector:hover {
     background:transparent;
@@ -170,13 +170,13 @@
 }
 #socialcalc-controls img.selected {
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/selected.png);
-}
-#socialcalc-controls img.selected:hover {
     cursor: auto;
+}
+#socialcalc-controls .icon-set img.selected {
+    cursor: pointer;
 }
 #socialcalc-controls .icon-set img.selected:hover {
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/selected-hover.png);
-    cursor: pointer;
 }
 #socialcalc-controls select {
     border:1px #999 solid;
