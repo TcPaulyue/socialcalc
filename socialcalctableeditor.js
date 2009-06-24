@@ -1537,6 +1537,12 @@ SocialCalc.EditorOpenCellEdit = function(editor) {
    if (!editor.ecell) return true; // no ecell
    if (!editor.inputBox) return true; // no input box, so no editing
    if (editor.inputBox.element.disabled) return true; // multi-line: ignore
+   if (editor.inputBox.element.style.display == 'none') {
+       for (f in editor.StatusCallback) {
+           editor.StatusCallback[f].func(editor, "editecell", null, editor.StatusCallback[f].params);
+       }
+       return true; // no inputBox display, so no editing
+   }
    editor.inputBox.ShowInputBox(true);
    editor.inputBox.Focus();
    editor.state = "inputboxdirect";
@@ -1605,6 +1611,12 @@ SocialCalc.EditorProcessKey = function(editor, ch, e) {
             }
          if (!editor.ecell) return true; // no ecell
          if (!editor.inputBox) return true; // no inputBox so no editing
+         if (editor.inputBox.element.style.display == 'none') {
+             for (f in editor.StatusCallback) {
+                 editor.StatusCallback[f].func(editor, "editecell", ch, editor.StatusCallback[f].params);
+             }
+             return true; // no inputBox display, so no editing
+         }
          editor.inputBox.element.disabled = false; // make sure editable
          editor.state = "input";
          editor.inputBox.ShowInputBox(true);
@@ -3038,10 +3050,16 @@ SocialCalc.InputBox.prototype.Blur = function() {return this.element.blur();};
 SocialCalc.InputBox.prototype.Select = function(t) {
    switch (t) {
       case "end":
-         if (this.element.selectionStart!=undefined) {
+         if (document.selection && document.selection.createRange) {
+            /* IE 4+ - Safer than setting .selectionEnd as it also works for Textareas. */
+            var range = document.selection.createRange().duplicate();
+            range.moveToElementText(this.element);
+            range.collapse(false);
+            range.select();
+         } else if (this.element.selectionStart!=undefined) {
             this.element.selectionStart=this.element.value.length;
             this.element.selectionEnd=this.element.value.length;
-            }
+         }
          break;
       }
    };
