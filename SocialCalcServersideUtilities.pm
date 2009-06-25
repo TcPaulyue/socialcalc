@@ -1800,8 +1800,8 @@ sub format_text_for_display {
    if ($valueformat eq "text-html") { # HTML - output as it as is
        if ($displayvalue =~ /^<!-- wiki:(.*?) -->/s) {
            my $wikitext = $1;
-           $wikitext =~ s/=-/-/g;
-           $wikitext =~ s/==/=/g;
+           $wikitext =~ s/&gt;/>/g;
+           $wikitext =~ s/&amp;/&/g;
            $displayvalue = ExpandWikitext($wikitext, $sheet, $options, 'text-wiki');
        }
       }
