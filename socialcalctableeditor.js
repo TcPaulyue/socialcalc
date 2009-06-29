@@ -2616,7 +2616,14 @@ SocialCalc.DoPositionCalculations = function() {
 
    editor.timeout = null;
 
-   editor.CalculateEditorPositions();
+   var ok = false;
+   try {
+       editor.CalculateEditorPositions();
+       ok = true;
+   } catch (e) {}
+
+   if (!ok) return; /* Workaround IE6 partial-initialized-DOM bug */
+
    editor.verticaltablecontrol.PositionTableControlElements();
    editor.horizontaltablecontrol.PositionTableControlElements();
 

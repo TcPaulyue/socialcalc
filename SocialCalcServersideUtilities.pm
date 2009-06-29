@@ -1799,7 +1799,10 @@ sub format_text_for_display {
       }
    if ($valueformat eq "text-html") { # HTML - output as it as is
        if ($displayvalue =~ /^<!-- wiki:(.*?) -->/s) {
-           $displayvalue = ExpandWikitext($1, $sheet, $options, 'text-wiki');
+           my $wikitext = $1;
+           $wikitext =~ s/&gt;/>/g;
+           $wikitext =~ s/&amp;/&/g;
+           $displayvalue = ExpandWikitext($wikitext, $sheet, $options, 'text-wiki');
        }
       }
    elsif ($valueformat =~ m/^text-wiki/) { # wiki text
