@@ -9,7 +9,7 @@
     border-bottom:1px #999 solid;
     height:28px;
 }
-#socialcalc-header h2, #socialcalc-header ul, #socialcalc-header div {
+#socialcalc-header h2, #socialcalc-header #tabs, #socialcalc-header div {
     float:left;
     margin:0;
     padding:4px 0 0 0;
@@ -39,13 +39,13 @@
     border-left:1px #ccc solid;
     color:#999;
 }
-#socialcalc-header ul {
+#socialcalc-header #tabs {
     float:right;
     margin:0 12px 0 0;
     padding:8px 0 0 0;
     list-style-type:none;
 }
-#socialcalc-header ul li {
+#socialcalc-header #tabs li {
     display:inline;
     border-top:1px #999 solid;
     border-left:1px #999 solid;
@@ -55,11 +55,11 @@
     background:#999;
     padding-bottom:4px;
 }
-#socialcalc-header ul li.selected {
+#socialcalc-header #tabs li.selected {
     background:#fff;
     border-bottom:1px #fff solid;
 }
-#socialcalc-header ul li a {
+#socialcalc-header #tabs li a {
     text-decoration:none;
     color:#333;
     margin:4px;
