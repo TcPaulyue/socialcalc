@@ -21,6 +21,12 @@
 #socialcalc-header #buttons {
     padding:4px 8px;
 }
+#socialcalc-header #buttons ul {
+    float: left;
+}
+#socialcalc-header #buttons ul li {
+    margin-left: 10px;
+}
 #socialcalc-header #buttons input {
     background: #ccc url(/nlw/plugin/socialcalc/images/socialcalc/acc-closed.png) repeat-x scroll top left;
     border-top:1px #ccc solid;
