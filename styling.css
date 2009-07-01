@@ -3,11 +3,11 @@
     ------
 */
 #socialcalc-header {
-    background:#fff;
     margin:0;
     padding:0;
     border-bottom:1px #999 solid;
-    height:28px;
+    height:32px;
+    padding-top: 4px;
 }
 #socialcalc-header h2, #socialcalc-header #tabs, #socialcalc-header div {
     float:left;
@@ -48,7 +48,7 @@
 #socialcalc-header #tabs {
     float:right;
     margin:0 12px 0 0;
-    padding:8px 0 0 0;
+    padding:10px 0 0 0;
     list-style-type:none;
 }
 #socialcalc-header #tabs li {
