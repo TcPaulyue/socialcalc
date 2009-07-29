@@ -180,7 +180,7 @@ SocialCalc.TableEditor = function(context) {
 
    this.ctrlkeyFunction = function(editor, charname) {
 
-      var ta, cell, position, cmd, sel, cliptext;
+      var ta, ha, cell, position, cmd, sel, cliptext;
 
       switch (charname) {
          case "[ctrl-c]":
@@ -229,25 +229,56 @@ SocialCalc.TableEditor = function(context) {
             return true;
 
          case "[ctrl-v]":
-            ta = editor.pasteTextarea;
-            ta.value = "";
-            cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
-            if (cell) {
-               position = SocialCalc.GetElementPosition(cell.element);
-               ta.style.left = (position.left-1)+"px";
-               ta.style.top = (position.top-1)+"px";
-               }
-            ta.style.display = "block";
-            ta.value = "";  // must follow "block" setting for Webkit
-            ta.focus();
+            ha = editor.pasteHTMLarea;
+            if (ha) {
+                /* Pasting via HTML - Currently IE only */
+                ha.style.display = "block";
+                (ha.contentDocument||ha.contentWindow.document).getElementById('pastebin').focus();
+            }
+            else {
+                ta = editor.pasteTextarea;
+                ta.value = "";
+                cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
+                if (cell) {
+                position = SocialCalc.GetElementPosition(cell.element);
+                ta.style.left = (position.left-1)+"px";
+                ta.style.top = (position.top-1)+"px";
+                }
+                ta.style.display = "block";
+                ta.value = "";  // must follow "block" setting for Webkit
+                ta.focus();
+            }
             window.setTimeout(function() {
                var s = SocialCalc.GetSpreadsheetControlObject();
                if (!s) return;
                var editor = s.editor;
-               var ta = editor.pasteTextarea;
-               var value = ta.value;
-               ta.blur();
-               ta.style.display = "none";
+               var value;
+
+               ha = editor.pasteHTMLarea;
+               if (ha) {
+                 /* IE: We append a U+FFFC to every TD that's not the last of its row,
+                  *     then we obtain innerText, then turn U+FFFC back to \t,
+                  *     thereby preserving the cell separations (which gets discarded
+                  *     if we simply paste via textarea.
+                  */
+                 var _ObjectReplacementCharacter_ = String.fromCharCode(0xFFFC);
+                 var pasteBin = (ha.contentDocument||ha.contentWindow.document).getElementById('pastebin');
+                 var div = document.createElement("div");
+                 div.innerHTML = pasteBin.innerHTML.replace(
+                    /(<\/td>(\s+|<!--.*?-->)*<td\b)/gi,
+                    _ObjectReplacementCharacter_ + "$1"
+                 );
+                 value = div.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
+                 pasteBin.innerHTML = '';
+                 ha.blur();
+                 ha.style.display = "none";
+               }
+               else {
+                 var ta = editor.pasteTextarea;
+                 value = ta.value;
+                 ta.blur();
+                 ta.style.display = "none";
+               }
                var cmd = "";
                var clipstr = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.Clipboard.clipboard, "tab");
                value = value.replace(/\r\n/g, "\n");
@@ -465,7 +496,7 @@ SocialCalc.CreateTableEditor = function(editor, width, height) {
    editor.horizontaltablecontrol.CreateTableControl();
    AssignID(editor, editor.horizontaltablecontrol.main, "tablecontrolh");
 
-   var table, tbody, tr, td, img, anchor, ta;
+   var table, tbody, tr, td, img, anchor, ta, ha;
 
    table = document.createElement("table");
    editor.layouttable = table;
@@ -511,6 +542,18 @@ SocialCalc.CreateTableEditor = function(editor, width, height) {
    AssignID(editor, editor.pasteTextarea, "pastetextarea");
 
    editor.toplevel.appendChild(editor.pasteTextarea);
+
+   var div = document.createElement("div");
+   div.innerHTML = '    <br/>';
+   if (div.firstChild.nodeType == 1) {
+     /* We are running in IE -- Using HTML area for Ctrl-V */
+     ha = document.createElement("iframe"); // used for ctrl-v where an invisible html area is needed
+     editor.pasteHTMLarea = ha;
+     editor.toplevel.appendChild(editor.pasteHTMLarea);
+     ha.src = editor.imageprefix + "blank.html";
+     AssignID(editor, editor.pasteHTMLarea, "pastehtmlarea");
+     SocialCalc.setStyles(ha, "display:none;position:absolute;height:1px;width:1px;opacity:0;filter:alpha(opacity=0);");
+   }
 
    SocialCalc.MouseWheelRegister(editor.toplevel, {WheelMove: SocialCalc.EditorProcessMouseWheel, editor: editor});
 
