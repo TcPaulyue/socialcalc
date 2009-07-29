@@ -212,6 +212,32 @@ SocialCalc.TableEditor = function(context) {
                }
             editor.EditorScheduleSheetCommands(cmd); // queue up command to put on SocialCalc clipboard
 
+            /* Copy as HTML: This fails rather badly as it won't paste into Notepad as tab-delimited text. Oh well.
+
+                ha = editor.pasteHTMLarea;
+                if (editor.range.hasrange) {
+                    cell = SocialCalc.GetEditorCellElement(editor, editor.range.top, editor.range.left);
+                }
+                else {
+                    cell = SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
+                }
+                if (cell) position = SocialCalc.GetElementPosition(cell.element);
+             
+                if (ha) {
+                    if (position) {
+                        ha.style.left = (position.left-1)+"px";
+                        ha.style.top = (position.top-1)+"px";
+                    }
+                    ha.style.visibility="visible";
+                    cliptext = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.CreateSheetSave(editor.context.sheetobj, sel), "html");
+                    ha.innerHTML = cliptext.replace(/<tr\b[^>]*>[\d\D]*?<\/tr\b[^>]*>/i, '');
+                    ha.focus();
+
+                    var range = document.body.createControlRange();
+                    range.addElement(ha.childNodes[0]);
+                    range.select();
+                }
+            */
             ta.style.display = "block";
             ta.value = cliptext; // must follow "block" setting for Webkit
             ta.focus();
@@ -220,6 +246,14 @@ SocialCalc.TableEditor = function(context) {
                var s = SocialCalc.GetSpreadsheetControlObject();
                if (!s) return;
                var editor = s.editor;
+               /*
+               var ha = editor.pasteHTMLarea;
+               if (ha) {
+                 ha.blur();
+                 ha.innerHTML = '';
+                 ha.style.visibility = 'hidden';
+               }
+               */
                var ta = editor.pasteTextarea;
                ta.blur();
                ta.style.display = "none";
@@ -229,30 +263,37 @@ SocialCalc.TableEditor = function(context) {
             return true;
 
          case "[ctrl-v]":
-            ha = editor.pasteHTMLarea;
-            if (ha) {
-                /* Pasting via HTML - Currently IE only */
-                ha.style.display = "block";
-                (ha.contentDocument||ha.contentWindow.document).getElementById('pastebin').focus();
-            }
-            else {
+
+            var showPasteTextArea = function() {
                 ta = editor.pasteTextarea;
                 ta.value = "";
+
                 cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
                 if (cell) {
-                position = SocialCalc.GetElementPosition(cell.element);
-                ta.style.left = (position.left-1)+"px";
-                ta.style.top = (position.top-1)+"px";
+                    position = SocialCalc.GetElementPosition(cell.element);
+                    ta.style.left = (position.left-1)+"px";
+                    ta.style.top = (position.top-1)+"px";
                 }
                 ta.style.display = "block";
                 ta.value = "";  // must follow "block" setting for Webkit
                 ta.focus();
+            };
+
+            ha = editor.pasteHTMLarea;
+            if (ha) {
+                /* Pasting via HTML - Currently IE only */
+                ha.style.visibility = "visible";
+                ha.focus();
+            }
+            else {
+                showPasteTextArea();
             }
             window.setTimeout(function() {
                var s = SocialCalc.GetSpreadsheetControlObject();
                if (!s) return;
                var editor = s.editor;
-               var value;
+               var value = null;
+               var isPasteSameAsClipboard = false;
 
                ha = editor.pasteHTMLarea;
                if (ha) {
@@ -262,29 +303,51 @@ SocialCalc.TableEditor = function(context) {
                   *     if we simply paste via textarea.
                   */
                  var _ObjectReplacementCharacter_ = String.fromCharCode(0xFFFC);
-                 var pasteBin = (ha.contentDocument||ha.contentWindow.document).getElementById('pastebin');
                  var div = document.createElement("div");
-                 div.innerHTML = pasteBin.innerHTML.replace(
-                    /(<\/td>(\s+|<!--.*?-->)*<td\b)/gi,
-                    _ObjectReplacementCharacter_ + "$1"
-                 );
-                 value = div.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
-                 pasteBin.innerHTML = '';
-                 ha.blur();
-                 ha.style.display = "none";
+                 var pastedHTML = ha.innerHTML;
+
+                 if (!pastedHTML.match(/<table\b/i) && pastedHTML.match(/&nbsp;/)) {
+                    /* It's not a table, and there may be \t mis-pasted as &nbsp;. Fallback to text! */
+                    showPasteTextArea();
+                    document.execCommand('paste');
+                    value = null;
+                 }
+                 else {
+                    var orig = document.createElement("div");
+                    orig.innerHTML = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.Clipboard.clipboard, "html").replace(/<tr\b[^>]*>[\d\D]*?<\/tr\b[^>]*>/i, '');
+                    if (pastedHTML == orig.innerHTML) {
+                        isPasteSameAsClipboard = true;
+                    }
+
+                    div.innerHTML = pastedHTML.replace(
+                        /(<\/td>(\s+|<!--.*?-->)*<td\b)/gi,
+                        _ObjectReplacementCharacter_ + "$1"
+                    );
+                    value = div.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
+
+                    ha.innerHTML = '';
+                    ha.blur();
+                    ha.style.visibility = "hidden";
+                 }
                }
-               else {
+
+               if (value == null) {
                  var ta = editor.pasteTextarea;
                  value = ta.value;
                  ta.blur();
                  ta.style.display = "none";
                }
-               var cmd = "";
+
+               value = value.replace(/\r\n/g, "\n").replace(/\n?$/, '\n');
                var clipstr = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.Clipboard.clipboard, "tab");
-               value = value.replace(/\r\n/g, "\n");
+               if (value == clipstr || (value.length-clipstr.length==1 && value.substring(0,value.length-1)==clipstr)) {
+                  isPasteSameAsClipboard = true;
+               }
+
+               var cmd = "";
                // pastes SocialCalc clipboard if did a Ctrl-C and contents still the same
                // Webkit adds an extra blank line, so need to allow for that
-               if (value != clipstr && (value.length-clipstr.length!=1 || value.substring(0,value.length-1)!=clipstr)) {
+               if (!isPasteSameAsClipboard) {
                   cmd = "loadclipboard "+
                   SocialCalc.encodeForSave(SocialCalc.ConvertOtherFormatToSave(value, "tab")) + "\n";
                   }
@@ -546,13 +609,13 @@ SocialCalc.CreateTableEditor = function(editor, width, height) {
    var div = document.createElement("div");
    div.innerHTML = '    <br/>';
    if (div.firstChild.nodeType == 1) {
-     /* We are running in IE -- Using HTML area for Ctrl-V */
-     ha = document.createElement("iframe"); // used for ctrl-v where an invisible html area is needed
+     /* We are running in IE -- Using HTML-based area for Ctrl-V */
+     ha = document.createElement("div"); // used for ctrl-v where an invisible html area is needed
      editor.pasteHTMLarea = ha;
      editor.toplevel.appendChild(editor.pasteHTMLarea);
-     ha.src = editor.imageprefix + "blank.html";
+     ha.contentEditable = true;
      AssignID(editor, editor.pasteHTMLarea, "pastehtmlarea");
-     SocialCalc.setStyles(ha, "display:none;position:absolute;height:1px;width:1px;opacity:0;filter:alpha(opacity=0);");
+     SocialCalc.setStyles(ha, "display:block;visibility:hidden;position:absolute;height:1px;width:1px;opacity:0;filter:alpha(opacity=0);overflow:hidden");
    }
 
    SocialCalc.MouseWheelRegister(editor.toplevel, {WheelMove: SocialCalc.EditorProcessMouseWheel, editor: editor});
