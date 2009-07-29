@@ -308,9 +308,7 @@ SocialCalc.TableEditor = function(context) {
 
                  if (!pastedHTML.match(/<table\b/i) && pastedHTML.match(/&nbsp;/)) {
                     /* It's not a table, and there may be \t mis-pasted as &nbsp;. Fallback to text! */
-                    showPasteTextArea();
-                    document.execCommand('paste');
-                    value = null;
+                    value = clipboardData.getData('Text');
                  }
                  else {
                     var orig = document.createElement("div");
@@ -330,8 +328,7 @@ SocialCalc.TableEditor = function(context) {
                     ha.style.visibility = "hidden";
                  }
                }
-
-               if (value == null) {
+               else {
                  var ta = editor.pasteTextarea;
                  value = ta.value;
                  ta.blur();
