@@ -304,27 +304,24 @@ SocialCalc.TableEditor = function(context) {
                   */
                  var _ObjectReplacementCharacter_ = String.fromCharCode(0xFFFC);
                  var div = document.createElement("div");
-                 var pastedHTML = ha.innerHTML;
+                 var html = ha.innerHTML;
 
-                 if (!pastedHTML.match(/<table\b/i) && pastedHTML.match(/&nbsp;/)) {
-                    /* It's not a table, and there may be \t mis-pasted as &nbsp;. Fallback to text! */
-                    value = clipboardData.getData('Text');
-                 }
-                 else {
-                    /* Copy as HTML: This fails rather badly as it won't paste into Notepad as tab-delimited text. Oh well.
-
-                    var orig = document.createElement("div");
-                    orig.innerHTML = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.Clipboard.clipboard, "html").replace(/<tr\b[^>]*>[\d\D]*?<\/tr\b[^>]*>/i, '');
-                    if (pastedHTML == orig.innerHTML) {
-                        isPasteSameAsClipboard = true;
-                    }
-                    */
-                    div.innerHTML = pastedHTML.replace(
+                 if (html.match(/<(?!br)\w/i)) {
+                    /* HTML Paste: Mark TDs with U+FFFC accordingly.. */
+                    div.innerHTML = html.replace(
                         /(<\/td>(\s+|<!--.*?-->)*<td\b)/gi,
                         _ObjectReplacementCharacter_ + "$1"
                     );
-                    value = div.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
+                }
+                else {
+                    /* Text Paste: In IE, \t is transformed into &nbsp;, so replace them with U+FFFC. */
+                    div.innerHTML = html.replace(
+                        /&nbsp;/gi,
+                        _ObjectReplacementCharacter_
+                    );
                  }
+
+                 value = div.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
 
                  ha.innerHTML = '';
                  ha.blur();
