@@ -311,22 +311,24 @@ SocialCalc.TableEditor = function(context) {
                     value = clipboardData.getData('Text');
                  }
                  else {
+                    /* Copy as HTML: This fails rather badly as it won't paste into Notepad as tab-delimited text. Oh well.
+
                     var orig = document.createElement("div");
                     orig.innerHTML = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.Clipboard.clipboard, "html").replace(/<tr\b[^>]*>[\d\D]*?<\/tr\b[^>]*>/i, '');
                     if (pastedHTML == orig.innerHTML) {
                         isPasteSameAsClipboard = true;
                     }
-
+                    */
                     div.innerHTML = pastedHTML.replace(
                         /(<\/td>(\s+|<!--.*?-->)*<td\b)/gi,
                         _ObjectReplacementCharacter_ + "$1"
                     );
                     value = div.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
-
-                    ha.innerHTML = '';
-                    ha.blur();
-                    ha.style.visibility = "hidden";
                  }
+
+                 ha.innerHTML = '';
+                 ha.blur();
+                 ha.style.visibility = "hidden";
                }
                else {
                  var ta = editor.pasteTextarea;
