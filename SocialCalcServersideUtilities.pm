@@ -827,8 +827,10 @@ sub RenderTableTag {
 
    my ($context, $options) = @_;
 
-   return qq!<table class="st-ss" cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: $context->{totalwidth}px">!;
-
+   return join "\n",
+       qw(<table class="st-ss" cellspacing="0" cellpadding="0" style="border-collapse:collapse;),
+       qq/width:$context->{totalwidth}px"/,
+       ">";
    }
 
 #
@@ -846,7 +848,7 @@ sub RenderColGroup {
 
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
       if ($colwidths->[$col]) {
-         $outstr .= qq!<col width="$colwidths->[$col]"/>!;
+         $outstr .= qq!<col\nwidth="$colwidths->[$col]"/>!;
          }
       else {
          $outstr .= "<col/>";
@@ -918,7 +920,7 @@ sub RenderCell {
 
    if ($context->{cellIDprefix}) {
       $tagstr .= " " if $tagstr;
-      $tagstr .= qq!id="$context->{cellIDprefix}$coord"!;
+      $tagstr .= qq!id="$context->{cellIDprefix}$coord"\n!;
       }
 
    my $cell = $sheet->{cells}{$coord};
@@ -934,7 +936,7 @@ sub RenderCell {
              }
           }
       $tagstr .= " " if $tagstr;
-      $tagstr .= qq!colspan="$span"!;
+      $tagstr .= qq!colspan="$span"\n!;
       }
 
    if ($cell->{rowspan} > 1) {
@@ -945,7 +947,7 @@ sub RenderCell {
              }
           }
       $tagstr .= " " if $tagstr;
-      $tagstr .= qq!rowspan="$span"!;
+      $tagstr .= qq!rowspan="$span"\n!;
       }
 
    my $num = $cell->{layout} || $sheetattribs->{defaultlayout};
@@ -959,77 +961,77 @@ sub RenderCell {
    $num = $cell->{font} || $sheetattribs->{defaultfont};
    if ($num) { # get expanded font strings in context
       my $t = $context->{fonts}->[$num]; # do each - plain "font:" style sets all sorts of other values, too (Safari font-stretch problem on cssText)
-      $stylestr .= "font-style:$t->{style};font-weight:$t->{weight};font-size:$t->{size};font-family:$t->{family};";
+      $stylestr .= "font-style:$t->{style};\nfont-weight:$t->{weight};\nfont-size:$t->{size};\nfont-family:$t->{family};\n";
       }
    else {
       if ($context->{defaultfontsize}) {
-         $stylestr .= "font-size:$context->{defaultfontsize};";
+         $stylestr .= "font-size:$context->{defaultfontsize};\n";
          }
       if ($context->{defaultfontfamily}) {
-         $stylestr .= "font-family:$context->{defaultfontfamily};";
+         $stylestr .= "font-family:$context->{defaultfontfamily};\n";
          }
       }
 
    $num = $cell->{color} || $sheetattribs->{defaultcolor};
    if ($num) {
-      $stylestr .= "color:$sheet->{colors}->[$num];";
+      $stylestr .= "color:$sheet->{colors}->[$num];\n";
       }
 
    $num = $cell->{bgcolor} || $sheetattribs->{defaultbgcolor};
    if ($num) {
-      $stylestr .= "background-color:$sheet->{colors}->[$num];";
+      $stylestr .= "background-color:$sheet->{colors}->[$num];\n";
       }
 
    $num = $cell->{cellformat};
    if ($num) {
-      $stylestr .= "text-align:$sheet->{cellformats}->[$num];";
+      $stylestr .= "text-align:$sheet->{cellformats}->[$num];\n";
       }
    else {
       my $t = substr($cell->{valuetype}, 0, 1);
       if ($t eq "t") {
          $num = $sheetattribs->{defaulttextformat};
          if ($num) {
-            $stylestr .= "text-align:$sheet->{cellformats}->[$num];";
+            $stylestr .= "text-align:$sheet->{cellformats}->[$num];\n";
             }
          }
       elsif ($t eq "n") {
          $num = $sheetattribs->{defaultnontextformat};
          if ($num) {
-            $stylestr .= "text-align:$sheet->{cellformats}->[$num];";
+            $stylestr .= "text-align:$sheet->{cellformats}->[$num];\n";
             }
          else {
-            $stylestr .= "text-align:right;";
+            $stylestr .= "text-align:right;\n";
             }
          }
       else {
-         $stylestr .= "text-align:left;";
+         $stylestr .= "text-align:left;\n";
          }
       }
 
    if ($cell->{bt} &&
       ($cell->{bt}==$cell->{br} && $cell->{bt}==$cell->{bb} && $cell->{bt}==$cell->{bl})) {
-      $stylestr .= "border:$sheet->{borderstyles}->[$cell->{bt}];";
+      $stylestr .= "border:$sheet->{borderstyles}->[$cell->{bt}];\n";
       }
 
    else {
       $num = $cell->{bt};
       if ($num) {
-         $stylestr .= "border-top:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-top:$sheet->{borderstyles}->[$num];\n";
          }
 
       $num = $cell->{br};
       if ($num) {
-         $stylestr .= "border-right:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-right:$sheet->{borderstyles}->[$num];\n";
          }
 
       $num = $cell->{bb};
       if ($num) {
-         $stylestr .= "border-bottom:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-bottom:$sheet->{borderstyles}->[$num];\n";
          }
 
       $num = $cell->{bl};
       if ($num) {
-         $stylestr .= "border-left:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-left:$sheet->{borderstyles}->[$num];\n";
          }
       }
 
@@ -1046,18 +1048,18 @@ sub RenderCell {
 
    # Assemble output
 
-   $outstr .= qq{<td id="cell_$coord"};
+   $outstr .= qq{<td id="cell_$coord"\n};
 
    if ($tagstr) {
-      $outstr .= qq! $tagstr"!;
+      $outstr .= qq! $tagstr"\n!;
       }
 
    if ($classstr) {
-      $outstr .= qq! class="$classstr"!;
+      $outstr .= qq!class="$classstr"\n!;
       }
 
    if ($stylestr) {
-      $outstr .= qq! style="$stylestr"!;
+      $outstr .= qq!style="$stylestr"\n!;
       }
 
    $outstr .= ">";
@@ -1674,7 +1676,7 @@ sub ExpandWikitext {
 "daynames3" => "Sun Mon Tue Wed Thu Fri Sat ",
 "monthnames3" => "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",
 "monthnames" => "January February March April May June July August September October November December",
-"sheetdefaultlayoutstyle" => "padding:2px 2px 1px 2px;vertical-align:top;",
+"sheetdefaultlayoutstyle" => "padding:2px 2px 1px 2px;\nvertical-align:top;\n",
 "sheetdefaultfontfamily" => "Verdana,Arial,Helvetica,sans-serif",
 "linkformatstring" => '<span style="font-size:smaller;text-decoration:none !important;background-color:#66B;color:#FFF;">Link</span>', # you could make this an img tag if desired:
 #"linkformatstring" => '<img border="0" src="http://www.domain.com/link.gif">',
