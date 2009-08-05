@@ -874,13 +874,16 @@ sub RenderSizingRow {
 
    my $outstr = "<tr>";
 
+   my $label = 'A';
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
+      my $content = qq!<span class="sizing" style="display: none">$label</span>!;
       if ($colwidths->[$col]) {
-         $outstr .= qq!<td height="1" width="$colwidths->[$col]"></td>!;
+         $outstr .= qq!<td height="1" width="$colwidths->[$col]">$content</td>!;
          }
       else {
-         $outstr .= qq!<td height="1"></td>!;
+         $outstr .= qq!<td height="1">$content</td>!;
          }
+      $label++;
       }
    $outstr .= "</tr>";
 
