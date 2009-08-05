@@ -649,12 +649,12 @@ sub RenderSheet {
 
    $outstr .= RenderColGroup($context, $options); # then colgroup section
 
-   $outstr .= "<tbody>";
-
    $outstr .= RenderSizingRow($context, $options); # add tiny row so all cols have something despite spans
 
+   $outstr .= "<tbody>";
+
    for (my $row=1; $row <= $context->{maxrow}; $row++) {
-      $outstr .= "<tr>";
+      $outstr .= qq!<tr><th height="1"><span style="display: none">$row</span></th>!;
       for (my $col=1; $col <= $context->{maxcol}; $col++) {
          $outstr .= RenderCell($context, $row, $col, $options);
          }
@@ -844,7 +844,7 @@ sub RenderColGroup {
    my ($context, $options) = @_;
    my $colwidths = $context->{colwidth};
 
-   my $outstr = "<colgroup>";
+   my $outstr = "<colgroup><col/>";
 
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
       if ($colwidths->[$col]) {
@@ -872,20 +872,20 @@ sub RenderSizingRow {
    my ($context, $options) = @_;
    my $colwidths = $context->{colwidth};
 
-   my $outstr = "<tr>";
+   my $outstr = qq!<thead><tr><th height="1"></th>!;
 
    my $label = 'A';
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
-      my $content = qq!<span class="sizing" style="display: none">$label</span>!;
+      my $content = qq!<span style="display: none">$label</span>!;
       if ($colwidths->[$col]) {
-         $outstr .= qq!<td height="1" width="$colwidths->[$col]">$content</td>!;
+         $outstr .= qq!<th height="1" width="$colwidths->[$col]">$content</th>!;
          }
       else {
-         $outstr .= qq!<td height="1">$content</td>!;
+         $outstr .= qq!<th height="1">$content</th>!;
          }
       $label++;
       }
-   $outstr .= "</tr>";
+   $outstr .= "</tr></thead>";
 
    return $outstr;
 
