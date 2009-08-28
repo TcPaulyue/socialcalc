@@ -1054,11 +1054,7 @@ sub RenderCell {
    $outstr .= qq{<td id="cell_$coord"\n};
 
    if ($tagstr) {
-<<<<<<< HEAD:SocialCalcServersideUtilities.pm
-      $outstr .= qq! $tagstr"\n!;
-=======
-      $outstr .= qq! $tagstr!;
->>>>>>> Removed extra " in SocialCalcServersideUtilities.pm that was messing up spans, etc.:SocialCalcServersideUtilities.pm
+      $outstr .= qq! $tagstr\n!;
       }
 
    if ($classstr) {
