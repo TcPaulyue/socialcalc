@@ -844,7 +844,7 @@ sub RenderColGroup {
    my ($context, $options) = @_;
    my $colwidths = $context->{colwidth};
 
-   my $outstr = "<colgroup><col width='1'>";
+   my $outstr = "<colgroup><col width='1' />";
 
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
       if ($colwidths->[$col]) {
