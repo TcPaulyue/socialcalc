@@ -316,11 +316,28 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
 
    pos = SocialCalc.GetElementPositionWithScroll(spcdata.mainele);
 
+   if (typeof $ != 'undefined' && $(spcdata.mainele).parents('.st-spreadsheet-drawer').size() > 0) {
+       /* Socialtext-specific jQuery hack for dialog boxes */
+       $(main).css({
+//            top: ($(spcdata.mainele).offset().top - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top + 50) + 'px',
+//            left: '20px',
+            'z-index': 100,
+            'background-color': 'white',
+            'border': '1px solid black',
+            '-moz-box-shadow': '0px 20px 10px -10px #888',
+            '-webkit-box-shadow': '0px 20px 10px -10px #888',
+            'box-shadow': '0px 20px 10px -10px #888'
+       });
+   }
+   else {
+
    main.style.top = (pos.top+spcdata.mainele.offsetHeight)+"px";
    main.style.left = (pos.left)+"px";
    main.style.zIndex = 100;
    main.style.backgroundColor = "#FFF";
    main.style.border = "1px solid black";
+
+   }
 
    if (attribs.width) {
       main.style.width = attribs.width;
@@ -481,7 +498,7 @@ SocialCalc.Popup.Types.List.Create = function(type, id, attribs) {
 
    spcdata.mainele = ele;
 
-   ele.innerHTML = '<input style="cursor:pointer;width:100px;font-size:smaller;" onfocus="this.blur();" onclick="SocialCalc.Popup.CClick(\''+id+'\');" value="">';
+   ele.innerHTML = '<input style="cursor:pointer;width:'+(spcdata.attribs.inputWidth||'100px')+';font-size:smaller;" onfocus="this.blur();" onclick="SocialCalc.Popup.CClick(\''+id+'\');" value="">';
 
    spcdata.options = []; // set to nothing - use Initialize to fill
 
