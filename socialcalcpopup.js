@@ -318,16 +318,34 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
 
    if (typeof $ != 'undefined' && $(spcdata.mainele).parents('.st-spreadsheet-drawer').size() > 0) {
        /* Socialtext-specific jQuery hack for dialog boxes */
-       $(main).css({
-//            top: ($(spcdata.mainele).offset().top - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top + 50) + 'px',
-//            left: '20px',
+       var css = {
             'z-index': 100,
             'background-color': 'white',
-            'border': '1px solid black',
-            '-moz-box-shadow': '0px 20px 10px -10px #888',
-            '-webkit-box-shadow': '0px 20px 10px -10px #888',
-            'box-shadow': '0px 20px 10px -10px #888'
-       });
+            'border': '1px solid black'
+       };
+       switch (spcdata.attribs.direction) {
+           case 'top left': {
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   - 180
+               ) + 'px';
+               // FALL THROUGH
+           }
+           case 'top right': {
+               css.top = '232px';
+               break;
+           }
+           case 'bottom': {
+               css.left = '90px';
+               // FALL THROUGH
+           }
+           default: {
+               css['-moz-box-shadow'] = css['-webkit-box-shadow'] = css['box-shadow'] = '0px 20px 10px -10px #888';
+               break;
+           }
+       }
+       $(main).css(css);
    }
    else {
 
