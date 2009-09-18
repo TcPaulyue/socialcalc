@@ -328,19 +328,47 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
                css.left = (
                    $(spcdata.mainele).offset().left
                    - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
-                   - 180
+                   - 157
                ) + 'px';
-               // FALL THROUGH
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   - 98
+               ) + 'px';
+               break;
            }
            case 'top right': {
-               css.top = '232px';
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+               ) + 'px';
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   - 98
+               ) + 'px';
                break;
            }
            case 'bottom': {
                css.left = '90px';
-               // FALL THROUGH
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   + 47
+               ) + 'px';
+               css['-moz-box-shadow'] = css['-webkit-box-shadow'] = css['box-shadow'] = '0px 20px 10px -10px #888';
+               break;
            }
            default: {
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   + 47
+               ) + 'px';
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+               ) + 'px';
                css['-moz-box-shadow'] = css['-webkit-box-shadow'] = css['box-shadow'] = '0px 20px 10px -10px #888';
                break;
            }
