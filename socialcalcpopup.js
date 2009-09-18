@@ -328,12 +328,12 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
                css.left = (
                    $(spcdata.mainele).offset().left
                    - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
-                   - 157
+                   - 154
                ) + 'px';
                css.top = (
                    $(spcdata.mainele).offset().top
                    - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
-                   - 98
+                   - 85
                ) + 'px';
                break;
            }
@@ -341,11 +341,12 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
                css.left = (
                    $(spcdata.mainele).offset().left
                    - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   + 1
                ) + 'px';
                css.top = (
                    $(spcdata.mainele).offset().top
                    - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
-                   - 98
+                   - 85
                ) + 'px';
                break;
            }
@@ -368,6 +369,7 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
                css.left = (
                    $(spcdata.mainele).offset().left
                    - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   + 1
                ) + 'px';
                css['-moz-box-shadow'] = css['-webkit-box-shadow'] = css['box-shadow'] = '0px 20px 10px -10px #888';
                break;
