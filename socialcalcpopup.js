@@ -350,6 +350,19 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
                ) + 'px';
                break;
            }
+           case 'top right small': {
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   + 1
+               ) + 'px';
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   - 35
+               ) + 'px';
+               break;
+           }
            case 'bottom': {
                css.left = '90px';
                css.top = (
