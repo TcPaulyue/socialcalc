@@ -153,7 +153,7 @@
     border-right:1px #ddd solid;
     border-left:1px #666 solid;
 }
-#socialcalc-controls img, #st-spreadsheet-advanced-format-tools img {
+#socialcalc-controls img, #st-spreadsheet-advanced-format-tools img, #st-spreadsheet-sheet-settings-tools img {
     margin:0;
     padding:0 1px;
     vertical-align:bottom;
@@ -165,20 +165,20 @@
 #socialcalc-controls img.selector {
     width:10px;
 }
-#socialcalc-controls img:hover, #st-spreadsheet-advanced-format-tools img:hover {
+#socialcalc-controls img:hover, #st-spreadsheet-advanced-format-tools img:hover, #st-spreadsheet-sheet-settings-tools img:hover {
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/hover.png);
 }
 #socialcalc-controls img.selector:hover {
     background:transparent;
 }
-#socialcalc-controls img:active, #st-spreadsheet-advanced-format-tools img:active {
+#socialcalc-controls img:active, #st-spreadsheet-advanced-format-tools img:active, #st-spreadsheet-sheet-settings-tools img:active {
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/active.png);
 }
-#socialcalc-controls img.selected, #st-spreadsheet-advanced-format-tools img.selected  {
+#socialcalc-controls img.selected, #st-spreadsheet-advanced-format-tools img.selected, #st-spreadsheet-sheet-settings-tools img.selected {
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/selected.png);
     cursor: auto;
 }
-#socialcalc-controls .icon-set img.selected, #st-spreadsheet-advanced-format-tools img.selected  {
+#socialcalc-controls .icon-set img.selected, #st-spreadsheet-advanced-format-tools img.selected, #st-spreadsheet-sheet-settings-tools img.selected {
     cursor: pointer;
 }
 #socialcalc-controls .icon-set img.selected:hover {
