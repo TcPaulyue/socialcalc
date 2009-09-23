@@ -161,6 +161,8 @@
     height:20px;
     background-image: url(/nlw/plugin/socialcalc/images/socialcalc/unselected.png);
     cursor: pointer;
+    border-top: 1px solid #666666;
+    border-bottom: 1px solid #DDDDDD;
 }
 #socialcalc-controls img.selector {
     width:10px;
