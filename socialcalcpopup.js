@@ -328,7 +328,7 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
                css.left = (
                    $(spcdata.mainele).offset().left
                    - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
-                   - 154
+                   - 175
                ) + 'px';
                css.top = (
                    $(spcdata.mainele).offset().top
