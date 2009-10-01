@@ -2700,7 +2700,10 @@ SocialCalc.DoPositionCalculations = function() {
        ok = true;
    } catch (e) {}
 
-   if (!ok) return; /* Workaround IE6 partial-initialized-DOM bug */
+   if (!ok) {
+       setTimeout( SocialCalc.DoPositionCalculations, 400);
+       return; /* Workaround IE6 partial-initialized-DOM bug */
+   }
 
    editor.verticaltablecontrol.PositionTableControlElements();
    editor.horizontaltablecontrol.PositionTableControlElements();
