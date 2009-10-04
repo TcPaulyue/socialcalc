@@ -28,6 +28,8 @@ package Socialtext::SocialCalcServersideUtilities;
    use strict;
    use utf8;
    use Time::Local;
+   use Storable ();
+   use Digest::SHA ();
 
    require Exporter;
    our @ISA = qw(Exporter);
@@ -242,27 +244,23 @@ sub ParseSheetSave {
          $cr = CoordToCR($coord);
          $maxcol = $cr->{col} if $cr->{col} > $maxcol;
          $maxrow = $cr->{row} if $cr->{row} > $maxrow;
-         $cell->{_is_empty} = 1;
          while ($type) {
             $style = $cellAttribsStyle{$type};
             last if !$style; # process known, non-null types
             if ($style eq "v") {
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               delete $cell->{_is_empty} if length $value;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{datatype} = "v";
                $cell->{valuetype} = "n";
                }
             elsif ($style eq "t") {
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               delete $cell->{_is_empty} if length $value;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{datatype} = "t";
                $cell->{valuetype} = "t"; # !! should be Constants.textdatadefaulttype
                }
             elsif ($style eq "vt") {
                ($valuetype, $value, $type, $rest) = split(/:/, $rest, 4);
-               delete $cell->{_is_empty} if length $value;
                $cell->{datavalue} = DecodeFromSave($value);
                if (substr($valuetype,0,1) eq "n") {
                   $cell->{datatype} = "n";
@@ -274,7 +272,6 @@ sub ParseSheetSave {
                }
             elsif ($style eq "vtf") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
-               delete $cell->{_is_empty} if length $value or length $formula;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{formula} = DecodeFromSave($formula);
                $cell->{datatype} = "f";
@@ -282,14 +279,12 @@ sub ParseSheetSave {
                }
             elsif ($style eq "vtc") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
-               delete $cell->{_is_empty} if length $value or length $formula;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{formula} = DecodeFromSave($formula);
                $cell->{datatype} = "c";
                $cell->{valuetype} = $valuetype
                }
             elsif ($style eq "b") {
-               delete $cell->{_is_empty};
                my ($t, $r, $b, $l);
                ($t, $r, $b, $l, $type, $rest) = split(/:/, $rest, 6);
                $cell->{bt} = $t;
@@ -300,13 +295,11 @@ sub ParseSheetSave {
             elsif ($style eq "plain") {
                $attrib = $cellAttribTypeLong{$type};
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               delete $cell->{_is_empty} if length $value;
                $cell->{$attrib} = $value;
                }
             elsif ($style eq "decode") {
                $attrib = $cellAttribTypeLong{$type};
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               delete $cell->{_is_empty} if length $value;
                $cell->{$attrib} = DecodeFromSave($value);
                }
             else {
@@ -662,6 +655,7 @@ sub RenderSheet {
 
    $outstr .= "<tbody>";
 
+   $context->{_outstr_ref} = \$outstr;
    for (my $row=1; $row <= $context->{maxrow}; $row++) {
       $outstr .= qq!<tr><th height="1"><span style="display: none">$row</span></th>!;
       for (my $col=1; $col <= $context->{maxcol}; $col++) {
@@ -940,12 +934,19 @@ sub RenderCell {
       $cell = {datatype => "b"};
       }
 
-   if ($cell->{_is_empty}) {
-       my $cached = $context->{_empty_cell_cache}{$cell->{datatype}};
-       if ($cached) {
-           $cached =~ s/cell_\w+/cell_$coord/;
-           return $cached;
-       }
+   my $cache_key = do {
+       local $Storable::canonical = 1;
+       local $cell->{coord};
+       Digest::SHA::sha1(Storable::freeze($cell));
+   };
+
+   my $cache_len = $context->{_render_cache_len}{$cache_key};
+   if ($cache_len) {
+       return qq{<td id="cell_$coord"\n} . substr(
+           ${$context->{_outstr_ref}},
+           $context->{_render_cache_pos}{$cache_key},
+           $cache_len
+       );
    }
 
    if ($cell->{colspan} > 1) {
@@ -1086,15 +1087,14 @@ sub RenderCell {
    $outstr .= "$displayvalue";
    $outstr .= "</td>";
 
-   if ($cell->{_is_empty}) {
-       $context->{_empty_cell_cache}{$cell->{datatype}} = $outstr;
-   }
-
    if ($options->{parts}) {
       return {tag => $tagstr, style => $stylestr, classes => $classstr,
          value => $displayvalue, all => $outstr};
       }
    else {
+      my $head_length = length qq{<td id="cell_$coord"\n};
+      $context->{_render_cache_pos}{$cache_key} = length(${$context->{_outstr_ref}}) + $head_length;
+      $context->{_render_cache_len}{$cache_key} = length($outstr) - $head_length;
       return $outstr;
       }
 
