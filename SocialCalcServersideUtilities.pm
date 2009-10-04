@@ -242,23 +242,27 @@ sub ParseSheetSave {
          $cr = CoordToCR($coord);
          $maxcol = $cr->{col} if $cr->{col} > $maxcol;
          $maxrow = $cr->{row} if $cr->{row} > $maxrow;
+         $cell->{_is_empty} = 1;
          while ($type) {
             $style = $cellAttribsStyle{$type};
             last if !$style; # process known, non-null types
             if ($style eq "v") {
                ($value, $type, $rest) = split(/:/, $rest, 3);
+               delete $cell->{_is_empty} if length $value;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{datatype} = "v";
                $cell->{valuetype} = "n";
                }
             elsif ($style eq "t") {
                ($value, $type, $rest) = split(/:/, $rest, 3);
+               delete $cell->{_is_empty} if length $value;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{datatype} = "t";
                $cell->{valuetype} = "t"; # !! should be Constants.textdatadefaulttype
                }
             elsif ($style eq "vt") {
                ($valuetype, $value, $type, $rest) = split(/:/, $rest, 4);
+               delete $cell->{_is_empty} if length $value;
                $cell->{datavalue} = DecodeFromSave($value);
                if (substr($valuetype,0,1) eq "n") {
                   $cell->{datatype} = "n";
@@ -270,6 +274,7 @@ sub ParseSheetSave {
                }
             elsif ($style eq "vtf") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
+               delete $cell->{_is_empty} if length $value or length $formula;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{formula} = DecodeFromSave($formula);
                $cell->{datatype} = "f";
@@ -277,12 +282,14 @@ sub ParseSheetSave {
                }
             elsif ($style eq "vtc") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
+               delete $cell->{_is_empty} if length $value or length $formula;
                $cell->{datavalue} = DecodeFromSave($value);
                $cell->{formula} = DecodeFromSave($formula);
                $cell->{datatype} = "c";
                $cell->{valuetype} = $valuetype
                }
             elsif ($style eq "b") {
+               delete $cell->{_is_empty};
                my ($t, $r, $b, $l);
                ($t, $r, $b, $l, $type, $rest) = split(/:/, $rest, 6);
                $cell->{bt} = $t;
@@ -293,11 +300,13 @@ sub ParseSheetSave {
             elsif ($style eq "plain") {
                $attrib = $cellAttribTypeLong{$type};
                ($value, $type, $rest) = split(/:/, $rest, 3);
+               delete $cell->{_is_empty} if length $value;
                $cell->{$attrib} = $value;
                }
             elsif ($style eq "decode") {
                $attrib = $cellAttribTypeLong{$type};
                ($value, $type, $rest) = split(/:/, $rest, 3);
+               delete $cell->{_is_empty} if length $value;
                $cell->{$attrib} = DecodeFromSave($value);
                }
             else {
@@ -931,6 +940,14 @@ sub RenderCell {
       $cell = {datatype => "b"};
       }
 
+   if ($cell->{_is_empty}) {
+       my $cached = $context->{_empty_cell_cache}{$cell->{datatype}};
+       if ($cached) {
+           $cached =~ s/cell_\w+/cell_$coord/;
+           return $cached;
+       }
+   }
+
    if ($cell->{colspan} > 1) {
       my $span = 1;
       for (my $num=1; $num<$cell->{colspan}; $num++) {
@@ -1068,6 +1085,10 @@ sub RenderCell {
    $outstr .= ">";
    $outstr .= "$displayvalue";
    $outstr .= "</td>";
+
+   if ($cell->{_is_empty}) {
+       $context->{_empty_cell_cache}{$cell->{datatype}} = $outstr;
+   }
 
    if ($options->{parts}) {
       return {tag => $tagstr, style => $stylestr, classes => $classstr,
