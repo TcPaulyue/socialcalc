@@ -43,6 +43,11 @@ package Socialtext::SocialCalcServersideUtilities;
       RenderTableTag RenderColGroup RenderSizingRow RenderCell);
    our $VERSION = '1.0.0';
 
+   use constant ColToCoord => [do {
+        my $sym = 'A';
+        ('A', map { $sym++ } (1..27*26));
+   }];
+
    #
    # CONSTANTS
    #
@@ -420,7 +425,7 @@ sub CreateSheetSave {
 
    for (my $row=$cr1->{row}; $row <= $cr2->{row}; $row++) {
       for (my $col=$cr1->{col}; $col <= $cr2->{col}; $col++) {
-         my $coord = CRToCoord($col, $row);
+         my $coord = (ColToCoord()->[$col]).$row;
          my $cell = $sheet->{cells}{$coord};
          next if !$cell;
          my $line = CellToString($cell);
@@ -692,7 +697,7 @@ sub CalculateCellSkipData {
 
    for (my $row=1; $row <= $sheetattribs->{lastrow}; $row++) {
       for (my $col=1; $col <= $sheetattribs->{lastcol}; $col++) { # look for spans and set cellskip for skipped cells
-         my $coord = CRToCoord($col, $row);
+         my $coord = (ColToCoord()->[$col]).$row;
          my $cell = $sheet->{cells}{$coord};
          # don't look at undefined cells (they have no spans) or skipped cells
          if (!$cell || $context->{cellskip}{$coord}) {
@@ -703,7 +708,7 @@ sub CalculateCellSkipData {
          if ($colspan>1 || $rowspan>1) {
             for (my $skiprow=$row; $skiprow<$row+$rowspan; $skiprow++) {
                for (my $skipcol=$col; $skipcol<$col+$colspan; $skipcol++) { # do the setting on individual cells
-                  my $skipcoord = CRToCoord($skipcol, $skiprow);
+                  my $skipcoord = (ColToCoord()->[$skipcol]).$skiprow;
                   if ($skipcoord ne $coord) { # flag other cells to point back here
                      $context->{cellskip}{$skipcoord} = $coord;
                      }
@@ -912,7 +917,7 @@ sub RenderCell {
    my $sheet = $context->{sheet};
    my $sheetattribs = $sheet->{attribs};
 
-   my $coord = CRToCoord($col, $row);
+   my $coord = (ColToCoord()->[$col]).$row;
 
    my $outstr = "";
    my $tagstr = "";
@@ -1223,7 +1228,7 @@ sub CreateCellHTMLSave {
 
    for (my $row=$cr1->{row}; $row <= $cr2->{row}; $row++) {
       for (my $col=$cr1->{col}; $col <= $cr2->{col}; $col++) {
-         my $coord = CRToCoord($col, $row);
+         my $coord = (ColToCoord()->[$col]).$row;
          my $cell = $sheet->{cells}{$coord};
          if (!$cell) {
             next;
@@ -1269,7 +1274,7 @@ sub CreateCSV {
 
    for (my $row=$cr1->{row}; $row <= $cr2->{row}; $row++) {
       for (my $col=$cr1->{col}; $col <= $cr2->{col}; $col++) {
-         my $coord = CRToCoord($col, $row);
+         my $coord = (ColToCoord()->[$col]).$row;
          my $cell = $sheet->{cells}{$coord};
 
          if ($cell->{errors}) {
@@ -1363,21 +1368,12 @@ sub CoordToCR {
 #
 
 sub CRToCoord {
-
    my ($col, $row) = @_;
 
-   $row = 1 unless $row > 1;
-   $col = 1 unless $col > 1;
+   $row = 1 if $row < 1;
+   $col = 1 if $col < 1;
 
-   my $col_high = int(($col - 1) / 26);
-   my $col_low = ($col - 1) % 26;
-
-   my $coord = chr(ord('A') + $col_low);
-   $coord = chr(ord('A') + $col_high - 1) . $coord if $col_high;
-   $coord .= $row;
-
-   return $coord;
-
+   return (ColToCoord()->[$col]).$row;
 }
 
 
