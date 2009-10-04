@@ -236,18 +236,11 @@ sub ParseSheetSave {
    foreach my $line (@lines) {
       ($linetype, $rest) = split(/:/, $line, 2);
 
-      if ($linetype eq "version") {
-         $sheet->{version} = $rest;
-         }
-
-      elsif ($linetype eq "cell") {
+      if ($linetype eq "cell") {
          ($coord, $type, $rest) = split(/:/, $rest, 3);
          $coord = uc($coord);
          $cell = {'coord' => $coord} if $type; # start with minimal cell
          $sheet->{cells}{$coord} = $cell;
-         $cr = CoordToCR($coord);
-         $maxcol = $cr->{col} if $cr->{col} > $maxcol;
-         $maxrow = $cr->{row} if $cr->{row} > $maxrow;
          while ($type) {
             $style = $cellAttribsStyle{$type};
             last if !$style; # process known, non-null types
@@ -311,6 +304,11 @@ sub ParseSheetSave {
                }
             }
          }
+
+      elsif ($linetype eq "version") {
+         $sheet->{version} = $rest;
+         }
+
 
       elsif ($linetype eq "col") {
          ($coord, $type, $rest) = split(/:/, $rest, 3);
@@ -386,6 +384,16 @@ sub ParseSheetSave {
          }
 
       }
+
+   my ($row, $col);
+   for my $key (keys %{$sheet->{cells}}) {
+       $row = $col = $key;
+       $col =~ tr/A-Z//cd; # Take only A-Z
+       $row =~ tr/0-9//cd; # Take only 0-9
+       $maxcol = $col if $col gt $maxcol or length($col) > length($maxcol);
+       $maxrow = $row if $row > $maxrow;
+   }
+   $maxcol = ColToNumber($maxcol);
 
    $sheet->{attribs}{lastcol} ||= $maxcol || 1;
    $sheet->{attribs}{lastrow} ||= $maxrow || 1;
