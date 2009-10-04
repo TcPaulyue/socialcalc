@@ -253,19 +253,19 @@ sub ParseSheetSave {
             last if !$style; # process known, non-null types
             if ($style eq "v") {
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               $cell->{datavalue} = DecodeFromSave($value);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                $cell->{datatype} = "v";
                $cell->{valuetype} = "n";
                }
             elsif ($style eq "t") {
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               $cell->{datavalue} = DecodeFromSave($value);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                $cell->{datatype} = "t";
                $cell->{valuetype} = "t"; # !! should be Constants.textdatadefaulttype
                }
             elsif ($style eq "vt") {
                ($valuetype, $value, $type, $rest) = split(/:/, $rest, 4);
-               $cell->{datavalue} = DecodeFromSave($value);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                if (substr($valuetype,0,1) eq "n") {
                   $cell->{datatype} = "n";
                   }
@@ -276,15 +276,15 @@ sub ParseSheetSave {
                }
             elsif ($style eq "vtf") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
-               $cell->{datavalue} = DecodeFromSave($value);
-               $cell->{formula} = DecodeFromSave($formula);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
+               $cell->{formula} = ($value =~ /\\[cnb]/) ? DecodeFromSave($formula) : $formula;
                $cell->{datatype} = "f";
                $cell->{valuetype} = $valuetype;
                }
             elsif ($style eq "vtc") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
-               $cell->{datavalue} = DecodeFromSave($value);
-               $cell->{formula} = DecodeFromSave($formula);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
+               $cell->{formula} = ($value =~ /\\[cnb]/) ? DecodeFromSave($formula) : $formula;
                $cell->{datatype} = "c";
                $cell->{valuetype} = $valuetype
                }
@@ -304,7 +304,7 @@ sub ParseSheetSave {
             elsif ($style eq "decode") {
                $attrib = $cellAttribTypeLong{$type};
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               $cell->{$attrib} = DecodeFromSave($value);
+               $cell->{$attrib} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                }
             else {
                last;
@@ -370,14 +370,14 @@ sub ParseSheetSave {
       elsif ($linetype eq "name") {
          ($name, $desc, $value) = split(/:/, $rest, 3);
          $name = uc (DecodeFromSave($name));
-         $sheet->{names}{$name}{desc} = DecodeFromSave($desc);
-         $sheet->{names}{$name}{definition} = DecodeFromSave($value);
+         $sheet->{names}{$name}{desc} = ($desc =~ /\\[cnb]/) ? DecodeFromSave($desc) : $desc;
+         $sheet->{names}{$name}{definition} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
          }
 
       elsif ($vlistNames{$linetype}) { # if one of the value lists, process
          $style = $vlistNames{$linetype}; # get base name
          ($num, $value) = split(/:/, $rest, 2);
-         $value = DecodeFromSave($value);
+         $value = DecodeFromSave($value) if $value =~ /\\[cnb]/;
          $sheet->{$style . "s"}->[$num] = $value;
          $sheet->{$style . "hash"}{$value} = $num;
          }
@@ -919,15 +919,12 @@ sub RenderCell {
    my $cache_key = do {
        my $buffer = '';
        for my $key (sort keys %$cell) {
-           next if $key eq 'coord';
-           $buffer .= "$_$;$cell->{$key}$;";
+           $buffer .= "$_\x00$cell->{$key}\x00" unless $key eq 'coord';
        }
-
        Digest::SHA::sha1($buffer);
    };
 
-   my $cache_len = $context->{_render_cache_len}{$cache_key};
-   if ($cache_len) {
+   if (my $cache_len = $context->{_render_cache_len}{$cache_key}) {
        return qq{<td id="cell_$coord"\n} . substr(
            ${$context->{_outstr_ref}},
            $context->{_render_cache_pos}{$cache_key},
