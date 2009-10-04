@@ -28,7 +28,6 @@ package Socialtext::SocialCalcServersideUtilities;
    use strict;
    use utf8;
    use Time::Local;
-   use Storable ();
    use Digest::SHA ();
 
    require Exporter;
@@ -940,9 +939,13 @@ sub RenderCell {
       }
 
    my $cache_key = do {
-       local $Storable::canonical = 1;
-       local $cell->{coord};
-       Digest::SHA::sha1(Storable::freeze($cell));
+       my $buffer = '';
+       for my $key (sort keys %$cell) {
+           next if $key eq 'coord';
+           $buffer .= "$_$;$cell->{$key}$;"
+       }
+
+       Digest::SHA::sha1($buffer);
    };
 
    my $cache_len = $context->{_render_cache_len}{$cache_key};
