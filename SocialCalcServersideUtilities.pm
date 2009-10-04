@@ -911,13 +911,31 @@ sub RenderSizingRow {
 #
 
 sub RenderCell {
-
    my ($context, $row, $col, $options) = @_;
    my $sheet = $context->{sheet};
-   my $sheetattribs = $sheet->{attribs};
-
    my $coord = (ColToCoord()->[$col]).$row;
+   my $cell = $sheet->{cells}{$coord} || {datatype => "b"};
 
+   my $cache_key = do {
+       my $buffer = '';
+       for my $key (sort keys %$cell) {
+           next if $key eq 'coord';
+           $buffer .= "$_$;$cell->{$key}$;";
+       }
+
+       Digest::SHA::sha1($buffer);
+   };
+
+   my $cache_len = $context->{_render_cache_len}{$cache_key};
+   if ($cache_len) {
+       return qq{<td id="cell_$coord"\n} . substr(
+           ${$context->{_outstr_ref}},
+           $context->{_render_cache_pos}{$cache_key},
+           $cache_len
+       );
+   }
+
+   my $sheetattribs = $sheet->{attribs};
    my $outstr = "";
    my $tagstr = "";
    my $stylestr = "";
@@ -932,30 +950,6 @@ sub RenderCell {
       $tagstr .= " " if $tagstr;
       $tagstr .= qq!id="$context->{cellIDprefix}$coord"\n!;
       }
-
-   my $cell = $sheet->{cells}{$coord};
-   if (!$cell) {
-      $cell = {datatype => "b"};
-      }
-
-   my $cache_key = do {
-       my $buffer = '';
-       for my $key (sort keys %$cell) {
-           next if $key eq 'coord';
-           $buffer .= "$_$;$cell->{$key}$;"
-       }
-
-       Digest::SHA::sha1($buffer);
-   };
-
-   my $cache_len = $context->{_render_cache_len}{$cache_key};
-   if ($cache_len) {
-       return qq{<td id="cell_$coord"\n} . substr(
-           ${$context->{_outstr_ref}},
-           $context->{_render_cache_pos}{$cache_key},
-           $cache_len
-       );
-   }
 
    if ($cell->{colspan} > 1) {
       my $span = 1;
