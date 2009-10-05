@@ -239,7 +239,10 @@ sub ParseSheetSave {
       if ($linetype eq "cell") {
          ($coord, $type, $rest) = split(/:/, $rest, 3);
          $coord = uc($coord);
-         $cell = {'coord' => $coord} if $type; # start with minimal cell
+         $cell = {
+             coord => $coord,
+             _cache_key => Digest::SHA::sha1(substr($line, length($coord) + 6)), # 6 == length('cell::')
+         } if $type; # start with minimal cell
          $sheet->{cells}{$coord} = $cell;
          while ($type) {
             $style = $cellAttribsStyle{$type};
@@ -924,13 +927,7 @@ sub RenderCell {
    my $coord = (ColToCoord()->[$col]).$row;
    my $cell = $sheet->{cells}{$coord} || {datatype => "b"};
 
-   my $cache_key = do {
-       my $buffer = '';
-       for my $key (sort keys %$cell) {
-           $buffer .= "$_\x00$cell->{$key}\x00" unless $key eq 'coord';
-       }
-       Digest::SHA::sha1($buffer);
-   };
+   my $cache_key = $cell->{_cache_key};
 
    if (my $cache_len = $context->{_render_cache_len}{$cache_key}) {
        return qq{<td id="cell_$coord"\n} . substr(
