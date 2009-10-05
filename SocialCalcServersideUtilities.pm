@@ -228,39 +228,36 @@ sub ParseSheetSave {
    $sheet->{attribs}{lastcol} = 0;
    $sheet->{attribs}{lastrow} = 0;
 
-   my @lines = split(/\r\n|\n/, $str);
-
    my ($linetype, $value, $coord, $type, $rest, $cell, $cr, $style, $valuetype, 
        $formula, $attrib, $num, $name, $desc);
 
-   foreach my $line (@lines) {
-      ($linetype, $rest) = split(/:/, $line, 2);
+   while ($str =~ /([^\r\n]+)/g) {
+      my @line = split(/:/, $1);
 
-      if ($linetype eq "cell") {
-         ($coord, $type, $rest) = split(/:/, $rest, 3);
+      if ((my $linetype = shift(@line)) eq "cell") {
+         ($coord, $type) = splice(@line, 0, 2);
          $coord = uc($coord);
-         $cell = {
+
+         $sheet->{cells}{$coord} = $cell = {
              coord => $coord,
-             _cache_key => Digest::SHA::sha1(substr($line, length($coord) + 6)), # 6 == length('cell::')
-         } if $type; # start with minimal cell
-         $sheet->{cells}{$coord} = $cell;
-         while ($type) {
-            $style = $cellAttribsStyle{$type};
-            last if !$style; # process known, non-null types
-            if ($style eq "v") {
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+             _cache_key => Digest::SHA::sha1(substr($1, length($coord) + 6)), # 6 == length('cell::')
+         } if $type;
+
+         # process known, non-null types; the assignment in the condition is intentional.
+         while ( ($style = $cellAttribsStyle{$type}) ) {
+            if ($style eq "t") {
+               ($value, $type) = splice(@line, 0, 2);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
+               $cell->{datatype} = $cell->{valuetype} = "t"; # !! should be Constants.textdatadefaulttype
+               }
+            elsif ($style eq "v") {
+               ($value, $type) = splice(@line, 0, 2);
                $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                $cell->{datatype} = "v";
                $cell->{valuetype} = "n";
                }
-            elsif ($style eq "t") {
-               ($value, $type, $rest) = split(/:/, $rest, 3);
-               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
-               $cell->{datatype} = "t";
-               $cell->{valuetype} = "t"; # !! should be Constants.textdatadefaulttype
-               }
             elsif ($style eq "vt") {
-               ($valuetype, $value, $type, $rest) = split(/:/, $rest, 4);
+               ($valuetype, $value, $type) = splice(@line, 0, 3);
                $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                if (substr($valuetype,0,1) eq "n") {
                   $cell->{datatype} = "n";
@@ -271,35 +268,30 @@ sub ParseSheetSave {
                $cell->{valuetype} = $valuetype;
                }
             elsif ($style eq "vtf") {
-               ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
+               ($valuetype, $value, $formula, $type) = splice(@line, 0, 4);
                $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                $cell->{formula} = ($value =~ /\\[cnb]/) ? DecodeFromSave($formula) : $formula;
                $cell->{datatype} = "f";
                $cell->{valuetype} = $valuetype;
                }
             elsif ($style eq "vtc") {
-               ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
+               ($valuetype, $value, $formula, $type) = splice(@line, 0, 4);
                $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                $cell->{formula} = ($value =~ /\\[cnb]/) ? DecodeFromSave($formula) : $formula;
                $cell->{datatype} = "c";
                $cell->{valuetype} = $valuetype
                }
             elsif ($style eq "b") {
-               my ($t, $r, $b, $l);
-               ($t, $r, $b, $l, $type, $rest) = split(/:/, $rest, 6);
-               $cell->{bt} = $t;
-               $cell->{br} = $r;
-               $cell->{bb} = $b;
-               $cell->{bl} = $l;
+               (@{$cell}{qw( bt br bb bl )}, $type) = splice(@line, 0, 5);
                }
             elsif ($style eq "plain") {
                $attrib = $cellAttribTypeLong{$type};
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $cell->{$attrib} = $value;
                }
             elsif ($style eq "decode") {
                $attrib = $cellAttribTypeLong{$type};
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $cell->{$attrib} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                }
             else {
@@ -309,20 +301,20 @@ sub ParseSheetSave {
          }
 
       elsif ($linetype eq "version") {
-         $sheet->{version} = $rest;
+         ($sheet->{version}) = @line;
          }
 
 
       elsif ($linetype eq "col") {
-         ($coord, $type, $rest) = split(/:/, $rest, 3);
+         ($coord, $type) = splice(@line, 0, 2);
          $coord = uc($coord); # normalize to upper case
          while ($type) {
             if ($type eq "w") {
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $sheet->{colattribs}{width}{$coord} = $value;
                }
             elsif ($type eq "hide") {
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $sheet->{colattribs}{hide}{$coord} = $value;
                }
             else {
@@ -332,14 +324,14 @@ sub ParseSheetSave {
          }
 
       elsif ($linetype eq "row") {
-         ($coord, $type, $rest) = split(/:/, $rest, 3);
+         ($coord, $type) = splice(@line, 0, 2);
          while ($type) {
             if ($type eq "h") {
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $sheet->{rowattribs}{height}{$coord} = $value;
                }
             elsif ($type eq "hide") {
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $sheet->{rowattribs}{hide}{$coord} = $value;
                }
             else {
@@ -349,17 +341,17 @@ sub ParseSheetSave {
          }
 
       elsif ($linetype eq "sheet") {
-         ($type, $rest) = split(/:/, $rest, 2);
+         ($type, $rest) = splice(@line, 0, 2);
          while ($type) {
             $attrib = $sheetAttribsShortToLong{$type};
             $style = $sheetAttribsStyle{$attrib};
             last if !$style; # process known, non-null types
             if ($style==1) { # plain number
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $sheet->{attribs}{$attrib} = $value-0;
                }
             elsif ($style==2) { # text
-               ($value, $type, $rest) = split(/:/, $rest, 3);
+               ($value, $type) = splice(@line, 0, 2);
                $sheet->{attribs}{$attrib} = $value;
                }
             else {
@@ -369,7 +361,7 @@ sub ParseSheetSave {
          }
 
       elsif ($linetype eq "name") {
-         ($name, $desc, $value) = split(/:/, $rest, 3);
+         ($name, $desc) = @line;
          $name = uc (DecodeFromSave($name));
          $sheet->{names}{$name}{desc} = ($desc =~ /\\[cnb]/) ? DecodeFromSave($desc) : $desc;
          $sheet->{names}{$name}{definition} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
@@ -377,7 +369,7 @@ sub ParseSheetSave {
 
       elsif ($vlistNames{$linetype}) { # if one of the value lists, process
          $style = $vlistNames{$linetype}; # get base name
-         ($num, $value) = split(/:/, $rest, 2);
+         ($num, $value) = @line;
          $value = DecodeFromSave($value) if $value =~ /\\[cnb]/;
          $sheet->{$style . "s"}->[$num] = $value;
          $sheet->{$style . "hash"}{$value} = $num;
@@ -388,13 +380,10 @@ sub ParseSheetSave {
 
       }
 
-   my ($row, $col);
-   for my $key (keys %{$sheet->{cells}}) {
-       $row = $col = $key;
-       $col =~ tr/A-Z//cd; # Take only A-Z
-       $row =~ tr/0-9//cd; # Take only 0-9
-       $maxcol = $col if $col gt $maxcol or length($col) > length($maxcol);
-       $maxrow = $row if $row > $maxrow;
+   for (keys %{$sheet->{cells}}) {
+       s/^([A-Z]+)//; # Take only 0-9; $_ is now the row and $1 is now the col
+       $maxcol = $1 if $1 gt $maxcol or length($1) > length($maxcol);
+       $maxrow = $_ if $_ > $maxrow;
    }
    $maxcol = ColToNumber($maxcol);
 
