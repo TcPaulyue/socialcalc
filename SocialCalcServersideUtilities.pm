@@ -236,11 +236,15 @@ sub ParseSheetSave {
 
       if ((my $linetype = shift(@line)) eq "cell") {
          ($coord, $type) = splice(@line, 0, 2);
-         $coord = uc($coord);
+         $coord =~ tr/a-z/A-Z/; # in-place; cheaper than calling uc()
 
          $sheet->{cells}{$coord} = $cell = {
              coord => $coord,
-             _cache_key => Digest::SHA::sha1(substr($1, length($coord) + 6)), # 6 == length('cell::')
+             _cache_key => (
+                 (length($1) > 30)
+                     ? Digest::SHA::sha1(substr($1, length($coord) + 6))
+                     : substr($1, length($coord) + 6)
+             ), # 6 == length('cell::')
          } if $type;
 
          # process known, non-null types; the assignment in the condition is intentional.
@@ -694,17 +698,18 @@ sub CalculateCellSkipData {
 
    # Calculate cellskip data
 
-   for (my $row=1; $row <= $sheetattribs->{lastrow}; $row++) {
-      for (my $col=1; $col <= $sheetattribs->{lastcol}; $col++) { # look for spans and set cellskip for skipped cells
+   for my $row (1..$sheetattribs->{lastrow}) {
+      for my $col (1..$sheetattribs->{lastcol}) { # look for spans and set cellskip for skipped cells
          my $coord = (ColToCoord()->[$col]).$row;
-         my $cell = $sheet->{cells}{$coord};
+         my $cell = $sheet->{cells}{$coord} or next;
+         next unless exists $cell->{colspan} or exists $cell->{rowspan};
+
          # don't look at undefined cells (they have no spans) or skipped cells
-         if (!$cell || $context->{cellskip}{$coord}) {
-            next;
-            }
+         next if $context->{cellskip}{$coord};
+
          my $colspan = $cell->{colspan} || 1;
          my $rowspan = $cell->{rowspan} || 1;
-         if ($colspan>1 || $rowspan>1) {
+         if ($colspan > 1 or $rowspan > 1) {
             for (my $skiprow=$row; $skiprow<$row+$rowspan; $skiprow++) {
                for (my $skipcol=$col; $skipcol<$col+$colspan; $skipcol++) { # do the setting on individual cells
                   my $skipcoord = (ColToCoord()->[$skipcol]).$skiprow;
@@ -912,20 +917,18 @@ sub RenderSizingRow {
 
 sub RenderCell {
    my ($context, $row, $col, $options) = @_;
-   my $sheet = $context->{sheet};
    my $coord = (ColToCoord()->[$col]).$row;
-   my $cell = $sheet->{cells}{$coord} || {datatype => "b"};
+   my $cell = $context->{sheet}{cells}{$coord} || {datatype => "b"};
 
-   my $cache_key = $cell->{_cache_key};
-
-   if (my $cache_len = $context->{_render_cache_len}{$cache_key}) {
+   if (my $cache_len = $context->{_render_cache_len}{$cell->{_cache_key}}) {
        return qq{<td id="cell_$coord"\n} . substr(
            ${$context->{_outstr_ref}},
-           $context->{_render_cache_pos}{$cache_key},
+           $context->{_render_cache_pos}{$cell->{_cache_key}},
            $cache_len
        );
    }
 
+   my $sheet = $context->{sheet};
    my $sheetattribs = $sheet->{attribs};
    my $outstr = "";
    my $tagstr = "";
@@ -1086,8 +1089,8 @@ sub RenderCell {
       }
    else {
       my $head_length = length qq{<td id="cell_$coord"\n};
-      $context->{_render_cache_pos}{$cache_key} = length(${$context->{_outstr_ref}}) + $head_length;
-      $context->{_render_cache_len}{$cache_key} = length($outstr) - $head_length;
+      $context->{_render_cache_pos}{$cell->{_cache_key}} = length(${$context->{_outstr_ref}}) + $head_length;
+      $context->{_render_cache_len}{$cell->{_cache_key}} = length($outstr) - $head_length;
       return $outstr;
       }
 
