@@ -390,13 +390,10 @@ sub ParseSheetSave {
 
       }
 
-   my ($row, $col);
-   for my $key (keys %{$sheet->{cells}}) {
-       $row = $col = $key;
-       $col =~ tr/A-Z//cd; # Take only A-Z
-       $row =~ tr/0-9//cd; # Take only 0-9
-       $maxcol = $col if $col gt $maxcol or length($col) > length($maxcol);
-       $maxrow = $row if $row > $maxrow;
+   for (keys %{$sheet->{cells}}) {
+       s/^([A-Z]+)//; # Take only 0-9; $_ is now the row and $1 is now the col
+       $maxcol = $1 if $1 gt $maxcol or length($1) > length($maxcol);
+       $maxrow = $_ if $_ > $maxrow;
    }
    $maxcol = ColToNumber($maxcol);
 
