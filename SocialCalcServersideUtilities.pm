@@ -228,13 +228,11 @@ sub ParseSheetSave {
    $sheet->{attribs}{lastcol} = 0;
    $sheet->{attribs}{lastrow} = 0;
 
-   my @lines = split(/\r\n|\n/, $str);
-
    my ($linetype, $value, $coord, $type, $rest, $cell, $cr, $style, $valuetype, 
        $formula, $attrib, $num, $name, $desc);
 
-   foreach my $line (@lines) {
-      ($linetype, $rest) = split(/:/, $line, 2);
+   while ($str =~ /([^\r\n]+)/g) {
+      ($linetype, $rest) = split(/:/, $1, 2);
 
       if ($linetype eq "cell") {
          ($coord, $type, $rest) = split(/:/, $rest, 3);
@@ -242,10 +240,10 @@ sub ParseSheetSave {
          $sheet->{cells}{$coord} = $cell = {
              coord => $coord,
              _cache_key => (
-                 (length($1) > 30)
-                     ? Digest::SHA::sha1(substr($1, length($coord) + 6))
-                     : substr($1, length($coord) + 6)
-             ), # 6 == length('cell::')
+                 (length($rest) > 30)
+                     ? Digest::SHA::sha1("$type:$rest")
+                     : "$type:$rest"
+             ),
          } if $type;
 
          $sheet->{cells}{$coord} = $cell;
