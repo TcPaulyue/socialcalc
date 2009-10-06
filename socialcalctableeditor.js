@@ -303,25 +303,24 @@ SocialCalc.TableEditor = function(context) {
                   *     if we simply paste via textarea.
                   */
                  var _ObjectReplacementCharacter_ = String.fromCharCode(0xFFFC);
-                 var div = document.createElement("div");
                  var html = ha.innerHTML;
 
-                 if (html.match(/<(?!br)\w/i)) {
+                 if (html.search(/<(?![Bb][Rr])[A-Za-z]/) >= 0) {
                     /* HTML Paste: Mark TDs with U+FFFC accordingly.. */
-                    div.innerHTML = html.replace(
-                        /(<\/td>(\s+|<!--.*?-->)*<td\b)/gi,
-                        _ObjectReplacementCharacter_ + "$1"
+                    ha.innerHTML = html.replace(
+                        /(?:<\/[Tt][Dd]>)/g,
+                        _ObjectReplacementCharacter_
                     );
                 }
                 else {
                     /* Text Paste: In IE, \t is transformed into &nbsp;, so replace them with U+FFFC. */
-                    div.innerHTML = html.replace(
-                        /&nbsp;/gi,
+                    ha.innerHTML = html.replace(
+                        /&[Nn][Bb][Ss][Pp];/g,
                         _ObjectReplacementCharacter_
                     );
                  }
 
-                 value = div.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
+                 value = ha.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
 
                  ha.innerHTML = '';
                  ha.blur();
