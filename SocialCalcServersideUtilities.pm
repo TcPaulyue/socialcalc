@@ -671,10 +671,25 @@ sub RenderSheet {
    for (my $row=1; $row <= $context->{maxrow}; $row++) {
       $outstr .= qq!<tr><th height="1"><span style="display: none">$row</span></th>!;
       for (my $col=1; $col <= $context->{maxcol}; $col++) {
-         $outstr .= RenderCell($context, $row, $col, $options);
+         my $coord = (ColToCoord()->[$col]).$row;
+
+         # skip if within a span masked by merged cells
+         next if ($context->{cellskip}{$coord});
+
+         my $cell = $context->{sheet}{cells}{$coord};
+         if (my $cache_len = $context->{_render_cache_len}{$cell->{_cache_key}}) {
+            $outstr .= qq{<td id="cell_$coord"\n} . substr(
+               $outstr,
+               $context->{_render_cache_pos}{$cell->{_cache_key}},
+               $cache_len
+            );
          }
-      $outstr .= "</tr>";
+         else {
+            $outstr .= RenderCell($context, $row, $col, $options, $coord, $cell || { datatype => 'b' });
+         }
       }
+      $outstr .= "</tr>";
+   }
 
    $outstr .= "</tbody>";
    $outstr .= "</table>";
@@ -933,23 +948,7 @@ sub RenderSizingRow {
 #
 
 sub RenderCell {
-   my ($context, $row, $col, $options) = @_;
-   my $coord = (ColToCoord()->[$col]).$row;
-
-   # skip if within a span masked by merged cells
-   if ($context->{cellskip}{$coord}) {
-      return "";
-   }
-
-   my $cell = $context->{sheet}{cells}{$coord} || {datatype => "b"};
-
-   if (my $cache_len = $context->{_render_cache_len}{$cell->{_cache_key}}) {
-       return qq{<td id="cell_$coord"\n} . substr(
-           ${$context->{_outstr_ref}},
-           $context->{_render_cache_pos}{$cell->{_cache_key}},
-           $cache_len
-       );
-   }
+   my ($context, $row, $col, $options, $coord, $cell) = @_;
 
    my $sheet = $context->{sheet};
    my $sheetattribs = $sheet->{attribs};
