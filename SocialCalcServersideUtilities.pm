@@ -659,7 +659,13 @@ sub RenderSheet {
    PrecomputeSheetFontsAndLayouts($context, $options);
    CalculateColWidthData($context, $options);
 
-   my $outstr = RenderTableTag($context, $options); # start with table tag
+   # Make a reasonable guess about the size of our rendered sheet, then
+   # pre-extend that SV.  This is *critical* for mod_perl performance,
+   # as malloc there is much slower there than the command line.
+   my $outstr = ("\x00" x ($context->{maxrow} * $context->{maxcol} * 100));
+   $outstr = '';
+
+   $outstr .= RenderTableTag($context, $options); # start with table tag
 
    $outstr .= RenderColGroup($context, $options); # then colgroup section
 
@@ -667,26 +673,22 @@ sub RenderSheet {
 
    $outstr .= "<tbody>";
 
-   $context->{_outstr_ref} = \$outstr;
+   my $id_prefix = $context->{cellIDprefix} || 'cell_';
+
    for (my $row=1; $row <= $context->{maxrow}; $row++) {
       $outstr .= qq!<tr><th height="1"><span style="display: none">$row</span></th>!;
       for (my $col=1; $col <= $context->{maxcol}; $col++) {
          my $coord = (ColToCoord()->[$col]).$row;
 
-         # skip if within a span masked by merged cells
-         next if ($context->{cellskip}{$coord});
+         # Skip if within a span masked by merged cells
+         next if $context->{cellskip}{$coord};
 
          my $cell = $context->{sheet}{cells}{$coord};
-         if (my $cache_len = $context->{_render_cache_len}{$cell->{_cache_key}}) {
-            $outstr .= qq{<td id="cell_$coord"\n} . substr(
-               $outstr,
-               $context->{_render_cache_pos}{$cell->{_cache_key}},
-               $cache_len
-            );
-         }
-         else {
-            $outstr .= RenderCell($context, $row, $col, $options, $coord, $cell || { datatype => 'b' });
-         }
+
+         $outstr .= qq{<td id="$id_prefix$coord"\n} . (
+             $context->{_render_cache_cell_html}{$cell->{_cache_key}}
+                 ||= RenderCell($context, $row, $col, $options, $coord, $cell || { datatype => 'b' })
+         );
       }
       $outstr .= "</tr>";
    }
@@ -706,6 +708,10 @@ sub RenderSheet {
       $stylestr .= "td.$long_class {\n$style}\n";
    }
    $stylestr .= "--></style>";
+
+   delete $context->{_render_cache_cell_style_long};
+   delete $context->{_render_cache_cell_style_short};
+   delete $context->{_render_cache_cell_html};
 
    return $stylestr . $outstr;
 
@@ -948,7 +954,7 @@ sub RenderSizingRow {
 #
 
 sub RenderCell {
-   my ($context, $row, $col, $options, $coord, $cell) = @_;
+   my ($context, $row, $col, $options, $coord, $orig_cell) = @_;
 
    my $sheet = $context->{sheet};
    my $sheetattribs = $sheet->{attribs};
@@ -958,10 +964,7 @@ sub RenderCell {
    my $classstr = "";
    my $displayvalue = "";
 
-   if ($context->{cellIDprefix}) {
-      $tagstr .= " " if $tagstr;
-      $tagstr .= qq!id="$context->{cellIDprefix}$coord"\n!;
-      }
+   my $cell = $orig_cell || $sheet->{cells}{$coord ||= (ColToCoord()->[$col]).$row};
 
    if ($cell->{colspan} > 1) {
       my $span = 1;
@@ -1117,7 +1120,9 @@ sub RenderCell {
       }
   }
 
-   $outstr .= qq{<td id="cell_$coord"\n};
+  unless ($orig_cell) {
+      $outstr .= qq{<td id="}.($context->{cellIDprefix}||'cell_').qq{$coord"\n};
+  }
 
    if ($tagstr) {
       $outstr .= qq! $tagstr\n!;
@@ -1135,13 +1140,8 @@ sub RenderCell {
       return {tag => $tagstr, style => $stylestr, classes => $classstr,
          value => $displayvalue, all => $outstr};
       }
-   else {
-      my $head_length = length qq{<td id="cell_$coord"\n};
-      $context->{_render_cache_pos}{$cell->{_cache_key}} = length(${$context->{_outstr_ref}}) + $head_length;
-      $context->{_render_cache_len}{$cell->{_cache_key}} = length($outstr) - $head_length;
-      return $outstr;
-      }
 
+  return $outstr;
    }
 
 
