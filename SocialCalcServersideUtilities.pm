@@ -922,6 +922,12 @@ sub RenderSizingRow {
 sub RenderCell {
    my ($context, $row, $col, $options) = @_;
    my $coord = (ColToCoord()->[$col]).$row;
+
+   # skip if within a span masked by merged cells
+   if ($context->{cellskip}{$coord}) {
+      return "";
+   }
+
    my $cell = $context->{sheet}{cells}{$coord} || {datatype => "b"};
 
    if (my $cache_len = $context->{_render_cache_len}{$cell->{_cache_key}}) {
@@ -939,10 +945,6 @@ sub RenderCell {
    my $stylestr = "";
    my $classstr = "";
    my $displayvalue = "";
-
-   if ($context->{cellskip}{$coord}) { # skip if within a span
-      return $outstr;
-      }
 
    if ($context->{cellIDprefix}) {
       $tagstr .= " " if $tagstr;
