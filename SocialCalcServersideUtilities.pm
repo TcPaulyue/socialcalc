@@ -679,7 +679,20 @@ sub RenderSheet {
    $outstr .= "</tbody>";
    $outstr .= "</table>";
 
-   return $outstr;
+   my $stylestr = "<style><!--\n";
+   while (my ($short_class, $long_class) = each %{ $context->{_render_cache_cell_style_short} }) {
+      my $style = delete $context->{_render_cache_cell_style_long}{$long_class};
+      # Here the ", td.$long_class" is not strictly neccessary, but contained
+      # for the case of possible e.g. concating two stylesheet renderings.
+      $stylestr .= "td.$short_class, td.$long_class {\n$style}\n";
+   }
+
+   while (my ($long_class, $style) = each %{ $context->{_render_cache_cell_style_long} }) {
+      $stylestr .= "td.$long_class {\n$style}\n";
+   }
+   $stylestr .= "--></style>";
+
+   return $stylestr . $outstr;
 
    }
 
@@ -1071,6 +1084,40 @@ sub RenderCell {
 
    # Assemble output
 
+   if ($stylestr) {
+      $classstr .= " " if $classstr;
+
+      my $long_class = "ss-" . Digest::SHA::sha1_hex($stylestr);
+      my $short_class = substr($long_class, 0, 6); # ss-XXX
+
+      if ($context->{_render_cache_cell_style_long}{$long_class}) {
+          # If this is not a new long class...
+          # ... check if the short class expands to the long class ...
+          if ($context->{_render_cache_cell_style_short}{$short_class} eq $long_class) {
+              # ... if so, use that short form
+              $classstr .= $short_class;
+          }
+          else {
+              # ... otherwise, use long form
+              $classstr .= $long_class;
+          }
+      }
+      else {
+          $context->{_render_cache_cell_style_long}{$long_class} = $stylestr;
+
+          if ($context->{_render_cache_cell_style_short}{$short_class}) {
+              # A new longclass, but shortclass is expanded to someone else.
+              # Use the long form...
+              $classstr .= $long_class;
+          }
+          else {
+              # Register this short class for us
+              $context->{_render_cache_cell_style_short}{$short_class} = $long_class;
+              $classstr .= $short_class;
+          }
+      }
+  }
+
    $outstr .= qq{<td id="cell_$coord"\n};
 
    if ($tagstr) {
@@ -1079,10 +1126,6 @@ sub RenderCell {
 
    if ($classstr) {
       $outstr .= qq!class="$classstr"\n!;
-      }
-
-   if ($stylestr) {
-      $outstr .= qq!style="$stylestr"\n!;
       }
 
    $outstr .= ">";
