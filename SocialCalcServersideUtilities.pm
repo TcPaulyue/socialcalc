@@ -676,7 +676,7 @@ sub RenderSheet {
    my $id_prefix = $context->{cellIDprefix} || 'cell_';
 
    for (my $row=1; $row <= $context->{maxrow}; $row++) {
-      $outstr .= qq!<tr><th height="1"><span style="display: none">$row</span></th>!;
+      $outstr .= qq!<tr><th height="1"><span>$row</span></th>!;
       for (my $col=1; $col <= $context->{maxcol}; $col++) {
          my $coord = (ColToCoord()->[$col]).$row;
 
@@ -926,7 +926,7 @@ sub RenderSizingRow {
 
    my $label = 'A';
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
-      my $content = qq!<span style="display: none">$label</span>!;
+      my $content = qq!<span>$label</span>!;
       if ($colwidths->[$col]) {
          $outstr .= qq!<th height="1" width="$colwidths->[$col]">$content</th>!;
          }
