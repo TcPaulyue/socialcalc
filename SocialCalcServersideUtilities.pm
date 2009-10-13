@@ -1090,7 +1090,10 @@ sub RenderCell {
       $classstr .= " " if $classstr;
 
       my $long_class = "ss-" . Digest::SHA::sha1_hex($stylestr);
-      my $short_class = substr($long_class, 0, 6); # ss-XXX
+
+      # Use 32 bits prefix, which allows 3000 style to have 0.1% chance of
+      # collision when concating two sheets together. (cf. Birthday Attack)
+      my $short_class = substr($long_class, 0, 7); # ss-ABCD
 
       if ($context->{_render_cache_cell_style_long}{$long_class}) {
           # If this is not a new long class...
