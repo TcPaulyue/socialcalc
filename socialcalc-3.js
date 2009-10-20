@@ -4982,11 +4982,11 @@ SocialCalc.format_text_for_display = function(rawvalue, valuetype, valueformat, 
    if (valueformat=="text-html") { // HTML - output as it as is
       ;
       }
-   else if (valueformat == "text-wiki") { // Wiki-text - encode then output
-      displayvalue = SocialCalc.special_chars(displayvalue);
-      }
    else if (SocialCalc.Callbacks.expand_wiki && /^text-wiki/.test(valueformat)) { // do general wiki markup
       displayvalue = SocialCalc.Callbacks.expand_wiki(displayvalue, sheetobj, linkstyle, valueformat);
+      }
+   else if (valueformat == "text-wiki") { // Wiki-text - encode then output
+      displayvalue = SocialCalc.special_chars(displayvalue);
       }
    else if (valueformat=="text-wiki") { // wiki text
       displayvalue = (SocialCalc.Callbacks.expand_markup
