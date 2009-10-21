@@ -1857,7 +1857,7 @@ sub format_text_for_display {
    $valueformat = "" unless $valueformat =~ m/^(text-|custom|hidden)/;
    if (!$valueformat || $valueformat eq "General") { # determine format from type
       $valueformat = "text-html" if ($valuesubtype eq "h");
-      $valueformat = "text-wiki" if ($valuesubtype eq "w");
+      $valueformat = "text-wiki" if ($valuesubtype eq "w" or $valuesubtype eq "r");
       $valueformat = "text-link" if ($valuesubtype eq "l");
       $valueformat = "text-plain" unless $valuesubtype;
       }
