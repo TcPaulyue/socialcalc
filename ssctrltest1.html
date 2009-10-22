@@ -20,7 +20,15 @@ body
 .hide {display:none;}
 </style>
 </head>
-<body onresize="doresize();">
+<body onresize="if (typeof doresize != 'undefined') doresize();" onload="
+    if (typeof localStorage != 'undefined') {
+        var saved = localStorage.getItem(location.href);
+        if (saved) {
+            savestr.value = saved;
+            doreload();
+        }
+    }
+">
 <form name="f0" action="" method="POST">
 <div style="padding:6px;background-color:#80A9F3;">
 <span style="font-weight:bold;color:white;">ssctrltest1.html</span>
@@ -146,7 +154,12 @@ SocialCalc.Callbacks.expand_wiki = function(displayvalue, sheetobj, linkstyle, v
 
 function dosave() {
    savestr.value = spreadsheet.CreateSpreadsheetSave();
-   alert(savestr.value);
+   if (typeof localStorage != 'undefined') {
+    try { localStorage.setItem(location.href, savestr.value) } catch (e) {};
+   }
+   else {
+    alert(savestr.value);
+   }
    }
 
 function doreload() {
