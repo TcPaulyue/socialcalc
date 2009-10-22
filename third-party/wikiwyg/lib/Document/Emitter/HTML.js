@@ -12,14 +12,13 @@ proto.begin_node = function(node) {
             return;
         }
         case 'html': {
-            var onload = "if (typeof(ss) != 'undefined' && ss.editor) { var recalc = function () { try { ss.editor.DoPositionCalculations() } catch (e) { setTimeout(recalc, 500) } }; recalc() } if (!window.image_dimension_cache) window.image_dimension_cache = {};window.image_dimension_cache['/data/wafl/Raw%20HTML%20section.%20Edit%20in%20Wiki%20Text%20mode.?uneditable=1'] = [ this.offsetWidth, this.offsetHeight ]; this.style.width = this.offsetWidth + 'px'; this.style.height = this.offsetHeight + 'px'";
-            this.output += '<img widget="'+node._html.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/>/, '&gt;')+'" src="/data/wafl/Raw%20HTML%20section.%20Edit%20in%20Wiki%20Text%20mode.?uneditable=1" title="Raw HTML section. Edit in Wiki Text mode." onload="'+onload+'" />';
+            this.output += '<span class="wafl">Raw HTML section. Edit in Wiki Text mode.</span>';
             return;
         }
         case 'waflparagraph': case 'waflphrase': case 'im': {
-            var onload = "if (typeof(ss) != 'undefined' && ss.editor) { var recalc = function () { try { ss.editor.DoPositionCalculations() } catch (e) { setTimeout(recalc, 500) } }; recalc() } if (!window.image_dimension_cache) window.image_dimension_cache = {};window.image_dimension_cache['/data/wafl/"+node._label.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "\\'").replace(/\\/g, "\\\\")+"'] = [ this.offsetWidth, this.offsetHeight ]; this.style.width = this.offsetWidth + 'px'; this.style.height = this.offsetHeight + 'px'";
-
             if (node._wafl.match(/^image:\s*(\S+)(?:\s+size=(\w+))?/)) {
+                var onload = "if (typeof(ss) != 'undefined' && ss.editor) { var recalc = function () { try { ss.editor.DoPositionCalculations() } catch (e) { setTimeout(recalc, 500) } }; recalc() } if (!window.image_dimension_cache) window.image_dimension_cache = {};window.image_dimension_cache['/data/wafl/"+node._label.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "\\'").replace(/\\/g, "\\\\")+"'] = [ this.offsetWidth, this.offsetHeight ]; this.style.width = this.offsetWidth + 'px'; this.style.height = this.offsetHeight + 'px'";
+
                 var imageName = RegExp.$1;
                 var width = RegExp.$2;
                 switch (width) {
@@ -30,22 +29,11 @@ proto.begin_node = function(node) {
                 if (width) {
                     width = ' width="'+width+'"';
                 }
-                if ((typeof $ != 'undefined') && $('#st-attachment-listing').size()) {
-                    var found = null;
-                    $('#st-attachment-listing a').each(function(){
-                        var $_ = $(this);
-                        if ($_.text() == imageName) {
-                            found = '<img widget="{'+node._wafl.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/>/, '&gt;')+'}" src="' + $_.attr('href') + '" onload="'+onload+'"'+width+' />';
-                            return false;
-                        }
-                    });
-                    if (found) {
-                        this.output += found;
-                        return;
-                    }
-                }
+                this.output += '<img src="'+imageName.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;")+'" onload="'+onload+'"'+width+' />';
+                return;
             }
-            this.output += '<img widget="{'+node._wafl.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/>/, '&gt;')+'}" src="/data/wafl/'+encodeURIComponent(node._label)+'" onload="'+onload+'" />';
+            this.output += '<span class="wafl">'+node._label.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "\\'").replace(/\\/g, "\\\\")+'</span>';
+
             return;
         }
         case 'a': case 'wikilink': {
