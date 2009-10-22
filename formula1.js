@@ -115,11 +115,10 @@ SocialCalc.Formula = {};
                 'e*': '|e*:1|n*:1|t*:1|b:1|'
                },
        concat: {
-                't': '|t:t|th:th|tw:tw|tl:t|tr:tr|t*:2|e*:2|',
-                'th': '|t:th|th:th|tw:t|tl:th|tr:t|t*:t|e*:2|',
-                'tw': '|t:tw|th:t|tw:tw|tl:tw|tr:tw|t*:t|e*:2|',
-                'tl': '|t:tl|th:th|tw:tw|tl:tl|tr:tr|t*:t|e*:2|',
-                't*': '|t*:t|e*:2|',
+                't': '|t:t|th:th|tw:tw|tl:t|t*:2|e*:2|',
+                'th': '|t:th|th:th|tw:t|tl:th|t*:t|e*:2|',
+                'tw': '|t:tw|th:t|tw:tw|tl:tw|t*:t|e*:2|',
+                'tl': '|t:tl|th:th|tw:tw|tl:tl|t*:t|e*:2|',
                 'e*': '|e*:1|n*:1|t*:1|'
                },
        oneargnumeric: { 'n*': '|n*:n|', 'e*': '|e*:1|', 't*': '|t*:e#VALUE!|', 'b': '|b:n|'},
@@ -4462,11 +4461,6 @@ SocialCalc.Formula.FindInSheetCache = function(sheetname) {
 
    if (sfsc.waitingForLoading) { // waiting already - only queue up one
       return null; // return not found
-      }
-
-   if (sfsc.loadsheet) { // Deprecated old format synchronous callback
-alert("Using SocialCalc.Formula.SheetCache.loadsheet - deprecated");
-      return SocialCalc.Formula.AddSheetToCache(nsheetname, sfsc.loadsheet(nsheetname));
       }
 
    sfsc.waitingForLoading = nsheetname; // let recalc loop know that we have a sheet to load

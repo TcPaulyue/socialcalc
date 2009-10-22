@@ -4985,10 +4985,13 @@ SocialCalc.format_text_for_display = function(rawvalue, valuetype, valueformat, 
    else if (SocialCalc.Callbacks.expand_wiki && /^text-wiki/.test(valueformat)) { // do general wiki markup
       displayvalue = SocialCalc.Callbacks.expand_wiki(displayvalue, sheetobj, linkstyle, valueformat);
       }
+   else if (valueformat == "text-wiki") { // Wiki-text - encode then output
+      displayvalue = SocialCalc.special_chars(displayvalue);
+      }
    else if (valueformat=="text-wiki") { // wiki text
       displayvalue = (SocialCalc.Callbacks.expand_markup
                       && SocialCalc.Callbacks.expand_markup(displayvalue, sheetobj, linkstyle)) || // do old wiki markup
-                     SocialCalc.special_chars("wiki-text:"+displayvalue);
+                     SocialCalc.special_chars(displayvalue);
       }
    else if (valueformat=="text-url") { // text is a URL for a link
       dvsc = SocialCalc.special_chars(displayvalue);

@@ -1,3 +1,4 @@
+package Socialtext::SocialCalcServersideUtilities;
 #
 # SocialCalcServersideUtilites.pm
 #
@@ -27,17 +28,24 @@
    use strict;
    use utf8;
    use Time::Local;
+   use Digest::SHA ();
 
    require Exporter;
    our @ISA = qw(Exporter);
    our @EXPORT = qw(CreateSheet ParseSheetSave CreateSheetSave DecodeSpreadsheetSave
       CreateCellHTML CreateCellHTMLSave
+      CoordToCR CRToCoord ParseRange
       CreateCSV
       CellToString 
-      CreateRenderContext RenderSheet
+      CreateRenderContext RenderSheet CreateCSV
       CalculateCellSkipData PrecomputeSheetFontsAndLayouts CalculateColWidthData 
       RenderTableTag RenderColGroup RenderSizingRow RenderCell);
    our $VERSION = '1.0.0';
+
+   use constant ColToCoord => [do {
+        my $sym = 'A';
+        ('A', map { $sym++ } (1..27*26));
+   }];
 
    #
    # CONSTANTS
@@ -205,7 +213,7 @@ sub CreateSheet {
    }
 
 #
-# $errorstring = ParseSheetSave($sheet, $str);
+# ParseSheetSave($sheet, $str);
 #
 # Parses the string $str in SocialCalc Sheet Save format and sets the
 # values in $sheet.
@@ -220,44 +228,40 @@ sub ParseSheetSave {
    $sheet->{attribs}{lastcol} = 0;
    $sheet->{attribs}{lastrow} = 0;
 
-   my @lines = split(/\r\n|\n/, $str);
-
    my ($linetype, $value, $coord, $type, $rest, $cell, $cr, $style, $valuetype, 
        $formula, $attrib, $num, $name, $desc);
 
-   foreach my $line (@lines) {
-      ($linetype, $rest) = split(/:/, $line, 2);
+   while ($str =~ /([^\r\n]+)/g) {
+      ($linetype, $rest) = split(/:/, $1, 2);
 
-      if ($linetype eq "version") {
-         $sheet->{version} = $rest;
-         }
-
-      elsif ($linetype eq "cell") {
+      if ($linetype eq "cell") {
          ($coord, $type, $rest) = split(/:/, $rest, 3);
-         $coord = uc($coord);
-         $cell = {'coord' => $coord} if $type; # start with minimal cell
+         $coord =~ tr/a-z/A-Z/; # in-place; cheaper than calling uc()
+         $sheet->{cells}{$coord} = $cell = {
+             coord => $coord,
+             _cache_key => (
+                 (length($rest) > 30)
+                     ? Digest::SHA::sha1("$type:$rest")
+                     : "$type:$rest"
+             ),
+         } if $type;
+
          $sheet->{cells}{$coord} = $cell;
-         $cr = CoordToCR($coord);
-         $maxcol = $cr->{col} if $cr->{col} > $maxcol;
-         $maxrow = $cr->{row} if $cr->{row} > $maxrow;
-         while ($type) {
-            $style = $cellAttribsStyle{$type};
-            last if !$style; # process known, non-null types
-            if ($style eq "v") {
+         while ( ($style = $cellAttribsStyle{$type}) ) {
+            if ($style eq "t") {
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               $cell->{datavalue} = DecodeFromSave($value);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
+               $cell->{datatype} = $cell->{valuetype} = "t"; # !! should be Constants.textdatadefaulttype
+               }
+            elsif ($style eq "v") {
+               ($value, $type, $rest) = split(/:/, $rest, 3);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                $cell->{datatype} = "v";
                $cell->{valuetype} = "n";
                }
-            elsif ($style eq "t") {
-               ($value, $type, $rest) = split(/:/, $rest, 3);
-               $cell->{datavalue} = DecodeFromSave($value);
-               $cell->{datatype} = "t";
-               $cell->{valuetype} = "t"; # !! should be Constants.textdatadefaulttype
-               }
             elsif ($style eq "vt") {
                ($valuetype, $value, $type, $rest) = split(/:/, $rest, 4);
-               $cell->{datavalue} = DecodeFromSave($value);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                if (substr($valuetype,0,1) eq "n") {
                   $cell->{datatype} = "n";
                   }
@@ -268,15 +272,15 @@ sub ParseSheetSave {
                }
             elsif ($style eq "vtf") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
-               $cell->{datavalue} = DecodeFromSave($value);
-               $cell->{formula} = DecodeFromSave($formula);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
+               $cell->{formula} = ($value =~ /\\[cnb]/) ? DecodeFromSave($formula) : $formula;
                $cell->{datatype} = "f";
                $cell->{valuetype} = $valuetype;
                }
             elsif ($style eq "vtc") {
                ($valuetype, $value, $formula, $type, $rest) = split(/:/, $rest, 5);
-               $cell->{datavalue} = DecodeFromSave($value);
-               $cell->{formula} = DecodeFromSave($formula);
+               $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
+               $cell->{formula} = ($value =~ /\\[cnb]/) ? DecodeFromSave($formula) : $formula;
                $cell->{datatype} = "c";
                $cell->{valuetype} = $valuetype
                }
@@ -296,13 +300,18 @@ sub ParseSheetSave {
             elsif ($style eq "decode") {
                $attrib = $cellAttribTypeLong{$type};
                ($value, $type, $rest) = split(/:/, $rest, 3);
-               $cell->{$attrib} = DecodeFromSave($value);
+               $cell->{$attrib} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                }
             else {
                last;
                }
             }
          }
+
+      elsif ($linetype eq "version") {
+         $sheet->{version} = $rest;
+         }
+
 
       elsif ($linetype eq "col") {
          ($coord, $type, $rest) = split(/:/, $rest, 3);
@@ -362,14 +371,14 @@ sub ParseSheetSave {
       elsif ($linetype eq "name") {
          ($name, $desc, $value) = split(/:/, $rest, 3);
          $name = uc (DecodeFromSave($name));
-         $sheet->{names}{$name}{desc} = DecodeFromSave($desc);
-         $sheet->{names}{$name}{definition} = DecodeFromSave($value);
+         $sheet->{names}{$name}{desc} = ($desc =~ /\\[cnb]/) ? DecodeFromSave($desc) : $desc;
+         $sheet->{names}{$name}{definition} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
          }
 
       elsif ($vlistNames{$linetype}) { # if one of the value lists, process
          $style = $vlistNames{$linetype}; # get base name
          ($num, $value) = split(/:/, $rest, 2);
-         $value = DecodeFromSave($value);
+         $value = DecodeFromSave($value) if $value =~ /\\[cnb]/;
          $sheet->{$style . "s"}->[$num] = $value;
          $sheet->{$style . "hash"}{$value} = $num;
          }
@@ -378,6 +387,13 @@ sub ParseSheetSave {
          }
 
       }
+
+   for (keys %{$sheet->{cells}}) {
+       s/^([A-Z]+)//; # Take only 0-9; $_ is now the row and $1 is now the col
+       $maxcol = $1 if $1 gt $maxcol or length($1) > length($maxcol);
+       $maxrow = $_ if $_ > $maxrow;
+   }
+   $maxcol = ColToNumber($maxcol);
 
    $sheet->{attribs}{lastcol} ||= $maxcol || 1;
    $sheet->{attribs}{lastrow} ||= $maxrow || 1;
@@ -416,7 +432,7 @@ sub CreateSheetSave {
 
    for (my $row=$cr1->{row}; $row <= $cr2->{row}; $row++) {
       for (my $col=$cr1->{col}; $col <= $cr2->{col}; $col++) {
-         my $coord = CRToCoord($col, $row);
+         my $coord = (ColToCoord()->[$col]).$row;
          my $cell = $sheet->{cells}{$coord};
          next if !$cell;
          my $line = CellToString($cell);
@@ -643,26 +659,61 @@ sub RenderSheet {
    PrecomputeSheetFontsAndLayouts($context, $options);
    CalculateColWidthData($context, $options);
 
-   my $outstr = RenderTableTag($context, $options); # start with table tag
+   # Make a reasonable guess about the size of our rendered sheet, then
+   # pre-extend that SV.  This is *critical* for mod_perl performance,
+   # as malloc there is much slower there than the command line.
+   my $outstr = ("\x00" x ($context->{maxrow} * $context->{maxcol} * 100));
+   $outstr = '';
+
+   $outstr .= RenderTableTag($context, $options); # start with table tag
 
    $outstr .= RenderColGroup($context, $options); # then colgroup section
 
-   $outstr .= "<tbody>";
-
    $outstr .= RenderSizingRow($context, $options); # add tiny row so all cols have something despite spans
 
+   $outstr .= "<tbody>";
+
+   my $id_prefix = $context->{cellIDprefix} || 'cell_';
+
    for (my $row=1; $row <= $context->{maxrow}; $row++) {
-      $outstr .= "<tr>";
+      $outstr .= qq!<tr><th height="1"><span>$row</span></th>!;
       for (my $col=1; $col <= $context->{maxcol}; $col++) {
-         $outstr .= RenderCell($context, $row, $col, $options);
-         }
-      $outstr .= "</tr>";
+         my $coord = (ColToCoord()->[$col]).$row;
+
+         # Skip if within a span masked by merged cells
+         next if $context->{cellskip}{$coord};
+
+         my $cell = $context->{sheet}{cells}{$coord};
+
+         $outstr .= qq{<td id="$id_prefix$coord"\n} . (
+             $context->{_render_cache_cell_html}{$cell->{_cache_key}}
+                 ||= RenderCell($context, $row, $col, $options, $coord, $cell || { datatype => 'b' })
+         );
       }
+      $outstr .= "</tr>";
+   }
 
    $outstr .= "</tbody>";
    $outstr .= "</table>";
 
-   return $outstr;
+   my $stylestr = "<style><!--\n";
+   while (my ($short_class, $long_class) = each %{ $context->{_render_cache_cell_style_short} }) {
+      my $style = delete $context->{_render_cache_cell_style_long}{$long_class};
+      # Here the ", td.$long_class" is not strictly neccessary, but contained
+      # for the case of possible e.g. concating two stylesheet renderings.
+      $stylestr .= "td.$short_class, td.$long_class {\n$style}\n";
+   }
+
+   while (my ($long_class, $style) = each %{ $context->{_render_cache_cell_style_long} }) {
+      $stylestr .= "td.$long_class {\n$style}\n";
+   }
+   $stylestr .= "--></style>";
+
+   delete $context->{_render_cache_cell_style_long};
+   delete $context->{_render_cache_cell_style_short};
+   delete $context->{_render_cache_cell_html};
+
+   return $stylestr . $outstr;
 
    }
 
@@ -685,20 +736,21 @@ sub CalculateCellSkipData {
 
    # Calculate cellskip data
 
-   for (my $row=1; $row <= $sheetattribs->{lastrow}; $row++) {
-      for (my $col=1; $col <= $sheetattribs->{lastcol}; $col++) { # look for spans and set cellskip for skipped cells
-         my $coord = CRToCoord($col, $row);
-         my $cell = $sheet->{cells}{$coord};
+   for my $row (1..$sheetattribs->{lastrow}) {
+      for my $col (1..$sheetattribs->{lastcol}) { # look for spans and set cellskip for skipped cells
+         my $coord = (ColToCoord()->[$col]).$row;
+         my $cell = $sheet->{cells}{$coord} or next;
+         next unless exists $cell->{colspan} or exists $cell->{rowspan};
+
          # don't look at undefined cells (they have no spans) or skipped cells
-         if (!$cell || $context->{cellskip}{$coord}) {
-            next;
-            }
+         next if $context->{cellskip}{$coord};
+
          my $colspan = $cell->{colspan} || 1;
          my $rowspan = $cell->{rowspan} || 1;
-         if ($colspan>1 || $rowspan>1) {
+         if ($colspan > 1 or $rowspan > 1) {
             for (my $skiprow=$row; $skiprow<$row+$rowspan; $skiprow++) {
                for (my $skipcol=$col; $skipcol<$col+$colspan; $skipcol++) { # do the setting on individual cells
-                  my $skipcoord = CRToCoord($skipcol, $skiprow);
+                  my $skipcoord = (ColToCoord()->[$skipcol]).$skiprow;
                   if ($skipcoord ne $coord) { # flag other cells to point back here
                      $context->{cellskip}{$skipcoord} = $coord;
                      }
@@ -825,8 +877,10 @@ sub RenderTableTag {
 
    my ($context, $options) = @_;
 
-   return qq!<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; width: $context->{totalwidth}px">!;
-
+   return join "\n",
+       qw(<table class="st-ss" cellspacing="0" cellpadding="0" style="border-collapse:collapse;),
+       qq/width:$context->{totalwidth}px"/,
+       ">";
    }
 
 #
@@ -840,11 +894,11 @@ sub RenderColGroup {
    my ($context, $options) = @_;
    my $colwidths = $context->{colwidth};
 
-   my $outstr = "<colgroup>";
+   my $outstr = '<colgroup><col width="1" />';
 
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
       if ($colwidths->[$col]) {
-         $outstr .= qq!<col width="$colwidths->[$col]"/>!;
+         $outstr .= qq!<col\nwidth="$colwidths->[$col]"/>!;
          }
       else {
          $outstr .= "<col/>";
@@ -868,17 +922,20 @@ sub RenderSizingRow {
    my ($context, $options) = @_;
    my $colwidths = $context->{colwidth};
 
-   my $outstr = "<tr>";
+   my $outstr = qq!<thead><tr><th height="1"></th>!;
 
+   my $label = 'A';
    for (my $col=1; $col <= $context->{maxcol}; $col++) {
+      my $content = qq!<span>$label</span>!;
       if ($colwidths->[$col]) {
-         $outstr .= qq!<td height="1" width="$colwidths->[$col]"></td>!;
+         $outstr .= qq!<th height="1" width="$colwidths->[$col]">$content</th>!;
          }
       else {
-         $outstr .= qq!<td height="1"></td>!;
+         $outstr .= qq!<th height="1">$content</th>!;
          }
+      $label++;
       }
-   $outstr .= "</tr>";
+   $outstr .= "</tr></thead>";
 
    return $outstr;
 
@@ -897,32 +954,17 @@ sub RenderSizingRow {
 #
 
 sub RenderCell {
+   my ($context, $row, $col, $options, $coord, $orig_cell) = @_;
 
-   my ($context, $row, $col, $options) = @_;
    my $sheet = $context->{sheet};
    my $sheetattribs = $sheet->{attribs};
-
-   my $coord = CRToCoord($col, $row);
-
    my $outstr = "";
    my $tagstr = "";
    my $stylestr = "";
    my $classstr = "";
    my $displayvalue = "";
 
-   if ($context->{cellskip}{$coord}) { # skip if within a span
-      return $outstr;
-      }
-
-   if ($context->{cellIDprefix}) {
-      $tagstr .= " " if $tagstr;
-      $tagstr .= qq!id="$context->{cellIDprefix}$coord"!;
-      }
-
-   my $cell = $sheet->{cells}{$coord};
-   if (!$cell) {
-      $cell = {datatype => "b"};
-      }
+   my $cell = $orig_cell || $sheet->{cells}{$coord ||= (ColToCoord()->[$col]).$row};
 
    if ($cell->{colspan} > 1) {
       my $span = 1;
@@ -932,7 +974,7 @@ sub RenderCell {
              }
           }
       $tagstr .= " " if $tagstr;
-      $tagstr .= qq!colspan="$span"!;
+      $tagstr .= qq!colspan="$span"\n!;
       }
 
    if ($cell->{rowspan} > 1) {
@@ -943,7 +985,7 @@ sub RenderCell {
              }
           }
       $tagstr .= " " if $tagstr;
-      $tagstr .= qq!rowspan="$span"!;
+      $tagstr .= qq!rowspan="$span"\n!;
       }
 
    my $num = $cell->{layout} || $sheetattribs->{defaultlayout};
@@ -957,77 +999,77 @@ sub RenderCell {
    $num = $cell->{font} || $sheetattribs->{defaultfont};
    if ($num) { # get expanded font strings in context
       my $t = $context->{fonts}->[$num]; # do each - plain "font:" style sets all sorts of other values, too (Safari font-stretch problem on cssText)
-      $stylestr .= "font-style:$t->{style};font-weight:$t->{weight};font-size:$t->{size};font-family:$t->{family};";
+      $stylestr .= "font-style:$t->{style};\nfont-weight:$t->{weight};\nfont-size:$t->{size};\nfont-family:$t->{family};\n";
       }
    else {
       if ($context->{defaultfontsize}) {
-         $stylestr .= "font-size:$context->{defaultfontsize};";
+         $stylestr .= "font-size:$context->{defaultfontsize};\n";
          }
       if ($context->{defaultfontfamily}) {
-         $stylestr .= "font-family:$context->{defaultfontfamily};";
+         $stylestr .= "font-family:$context->{defaultfontfamily};\n";
          }
       }
 
    $num = $cell->{color} || $sheetattribs->{defaultcolor};
    if ($num) {
-      $stylestr .= "color:$sheet->{colors}->[$num];";
+      $stylestr .= "color:$sheet->{colors}->[$num];\n";
       }
 
    $num = $cell->{bgcolor} || $sheetattribs->{defaultbgcolor};
    if ($num) {
-      $stylestr .= "background-color:$sheet->{colors}->[$num];";
+      $stylestr .= "background-color:$sheet->{colors}->[$num];\n";
       }
 
    $num = $cell->{cellformat};
    if ($num) {
-      $stylestr .= "text-align:$sheet->{cellformats}->[$num];";
+      $stylestr .= "text-align:$sheet->{cellformats}->[$num];\n";
       }
    else {
       my $t = substr($cell->{valuetype}, 0, 1);
       if ($t eq "t") {
          $num = $sheetattribs->{defaulttextformat};
          if ($num) {
-            $stylestr .= "text-align:$sheet->{cellformats}->[$num];";
+            $stylestr .= "text-align:$sheet->{cellformats}->[$num];\n";
             }
          }
       elsif ($t eq "n") {
          $num = $sheetattribs->{defaultnontextformat};
          if ($num) {
-            $stylestr .= "text-align:$sheet->{cellformats}->[$num];";
+            $stylestr .= "text-align:$sheet->{cellformats}->[$num];\n";
             }
          else {
-            $stylestr .= "text-align:right;";
+            $stylestr .= "text-align:right;\n";
             }
          }
       else {
-         $stylestr .= "text-align:left;";
+         $stylestr .= "text-align:left;\n";
          }
       }
 
    if ($cell->{bt} &&
       ($cell->{bt}==$cell->{br} && $cell->{bt}==$cell->{bb} && $cell->{bt}==$cell->{bl})) {
-      $stylestr .= "border:$sheet->{borderstyles}->[$cell->{bt}];";
+      $stylestr .= "border:$sheet->{borderstyles}->[$cell->{bt}];\n";
       }
 
    else {
       $num = $cell->{bt};
       if ($num) {
-         $stylestr .= "border-top:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-top:$sheet->{borderstyles}->[$num];\n";
          }
 
       $num = $cell->{br};
       if ($num) {
-         $stylestr .= "border-right:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-right:$sheet->{borderstyles}->[$num];\n";
          }
 
       $num = $cell->{bb};
       if ($num) {
-         $stylestr .= "border-bottom:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-bottom:$sheet->{borderstyles}->[$num];\n";
          }
 
       $num = $cell->{bl};
       if ($num) {
-         $stylestr .= "border-left:$sheet->{borderstyles}->[$num];";
+         $stylestr .= "border-left:$sheet->{borderstyles}->[$num];\n";
          }
       }
 
@@ -1044,18 +1086,53 @@ sub RenderCell {
 
    # Assemble output
 
-   $outstr .= "<td";
+   if ($stylestr) {
+      $classstr .= " " if $classstr;
+
+      my $long_class = "ss-" . Digest::SHA::sha1_hex($stylestr);
+
+      # Use 32 bits prefix, which allows 3000 style to have 0.1% chance of
+      # collision when concating two sheets together. (cf. Birthday Attack)
+      my $short_class = substr($long_class, 0, 7); # ss-ABCD
+
+      if ($context->{_render_cache_cell_style_long}{$long_class}) {
+          # If this is not a new long class...
+          # ... check if the short class expands to the long class ...
+          if ($context->{_render_cache_cell_style_short}{$short_class} eq $long_class) {
+              # ... if so, use that short form
+              $classstr .= $short_class;
+          }
+          else {
+              # ... otherwise, use long form
+              $classstr .= $long_class;
+          }
+      }
+      else {
+          $context->{_render_cache_cell_style_long}{$long_class} = $stylestr;
+
+          if ($context->{_render_cache_cell_style_short}{$short_class}) {
+              # A new longclass, but shortclass is expanded to someone else.
+              # Use the long form...
+              $classstr .= $long_class;
+          }
+          else {
+              # Register this short class for us
+              $context->{_render_cache_cell_style_short}{$short_class} = $long_class;
+              $classstr .= $short_class;
+          }
+      }
+  }
+
+  unless ($orig_cell) {
+      $outstr .= qq{<td id="}.($context->{cellIDprefix}||'cell_').qq{$coord"\n};
+  }
 
    if ($tagstr) {
-      $outstr .= qq! $tagstr!;
+      $outstr .= qq! $tagstr\n!;
       }
 
    if ($classstr) {
-      $outstr .= qq! class="$classstr"!;
-      }
-
-   if ($stylestr) {
-      $outstr .= qq! style="$stylestr"!;
+      $outstr .= qq!class="$classstr"\n!;
       }
 
    $outstr .= ">";
@@ -1066,10 +1143,8 @@ sub RenderCell {
       return {tag => $tagstr, style => $stylestr, classes => $classstr,
          value => $displayvalue, all => $outstr};
       }
-   else {
-      return $outstr;
-      }
 
+  return $outstr;
    }
 
 
@@ -1195,7 +1270,7 @@ sub CreateCellHTMLSave {
 
    for (my $row=$cr1->{row}; $row <= $cr2->{row}; $row++) {
       for (my $col=$cr1->{col}; $col <= $cr2->{col}; $col++) {
-         my $coord = CRToCoord($col, $row);
+         my $coord = (ColToCoord()->[$col]).$row;
          my $cell = $sheet->{cells}{$coord};
          if (!$cell) {
             next;
@@ -1241,7 +1316,7 @@ sub CreateCSV {
 
    for (my $row=$cr1->{row}; $row <= $cr2->{row}; $row++) {
       for (my $col=$cr1->{col}; $col <= $cr2->{col}; $col++) {
-         my $coord = CRToCoord($col, $row);
+         my $coord = (ColToCoord()->[$col]).$row;
          my $cell = $sheet->{cells}{$coord};
 
          if ($cell->{errors}) {
@@ -1335,21 +1410,12 @@ sub CoordToCR {
 #
 
 sub CRToCoord {
-
    my ($col, $row) = @_;
 
-   $row = 1 unless $row > 1;
-   $col = 1 unless $col > 1;
+   $row = 1 if $row < 1;
+   $col = 1 if $col < 1;
 
-   my $col_high = int(($col - 1) / 26);
-   my $col_low = ($col - 1) % 26;
-
-   my $coord = chr(ord('A') + $col_low);
-   $coord = chr(ord('A') + $col_high - 1) . $coord if $col_high;
-   $coord .= $row;
-
-   return $coord;
-
+   return (ColToCoord()->[$col]).$row;
 }
 
 
@@ -1529,6 +1595,10 @@ sub ExpandWikitext {
 
    my ($estring, $sheet, $options, $valueformat) = @_;
 
+   if (ref $options->{callback_object}) {
+       return $options->{callback_object}->expand_wikitext(@_);
+   }
+
    # handle the cases of text-wiki...
 
    if ($valueformat =~ m/^text-wiki(.+)$/) { # something more than just plain wikitext
@@ -1661,7 +1731,14 @@ sub ExpandWikitext {
 # * * * * * * * * * * * * * * * * * * * *
 
    our %WKCStrings = (
-"sheetdefaultlayoutstyle" => "padding:2px 2px 1px 2px;vertical-align:top;",
+"decimalchar" => ".",
+"separatorchar" => ",",
+"currencychar" => '$',
+"daynames" => "Sunday Monday Tuesday Wednesday Thursday Friday Saturday",
+"daynames3" => "Sun Mon Tue Wed Thu Fri Sat ",
+"monthnames3" => "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",
+"monthnames" => "January February March April May June July August September October November December",
+"sheetdefaultlayoutstyle" => "padding:2px 2px 1px 2px;\nvertical-align:top;\n",
 "sheetdefaultfontfamily" => "Verdana,Arial,Helvetica,sans-serif",
 "linkformatstring" => '<span style="font-size:smaller;text-decoration:none !important;background-color:#66B;color:#FFF;">Link</span>', # you could make this an img tag if desired:
 #"linkformatstring" => '<img border="0" src="http://www.domain.com/link.gif">',
@@ -1691,8 +1768,8 @@ sub FormatValueForDisplay {
 
    my $displayvalue = $value;
 
-   my $valuetype = $cell->{valuetype}; # get type of value to determine formatting
-   my $valuesubtype = substr($valuetype,1);
+   $valuetype = $cell->{valuetype}; # get type of value to determine formatting
+   $valuesubtype = substr($valuetype,1);
    $valuetype = substr($valuetype,0,1);
 
    if ($cell->{errors} || $valuetype eq "e") {
@@ -1780,12 +1857,17 @@ sub format_text_for_display {
    $valueformat = "" unless $valueformat =~ m/^(text-|custom|hidden)/;
    if (!$valueformat || $valueformat eq "General") { # determine format from type
       $valueformat = "text-html" if ($valuesubtype eq "h");
-      $valueformat = "text-wiki" if ($valuesubtype eq "w");
+      $valueformat = "text-wiki" if ($valuesubtype eq "w" or $valuesubtype eq "r");
       $valueformat = "text-link" if ($valuesubtype eq "l");
       $valueformat = "text-plain" unless $valuesubtype;
       }
    if ($valueformat eq "text-html") { # HTML - output as it as is
-      ;
+       if ($displayvalue =~ /^<!-- wiki:(.*?) -->/s) {
+           my $wikitext = $1;
+           $wikitext =~ s/&gt;/>/g;
+           $wikitext =~ s/&amp;/&/g;
+           $displayvalue = ExpandWikitext($wikitext, $sheet, $options, 'text-wiki');
+       }
       }
    elsif ($valueformat =~ m/^text-wiki/) { # wiki text
       $displayvalue = ExpandWikitext($displayvalue, $sheet, $options, $valueformat); # do wiki markup
@@ -2052,85 +2134,6 @@ sub format_number_for_display {
 
 # # # # # # # # #
 #
-# $juliandate = convert_date_gregorian_to_julian($year, $month, $day)
-#
-# From: http://aa.usno.navy.mil/faq/docs/JD_Formula.html
-# Uses: Fliegel, H. F. and van Flandern, T. C. (1968). Communications of the ACM, Vol. 11, No. 10 (October, 1968).
-# Translated from the FORTRAN
-#
-#      I= YEAR
-#      J= MONTH
-#      K= DAY
-#C
-#      JD= K-32075+1461*(I+4800+(J-14)/12)/4+367*(J-2-(J-14)/12*12)
-#     2    /12-3*((I+4900+(J-14)/12)/100)/4
-#
-# # # # # # # # #
-
-sub convert_date_gregorian_to_julian {
-
-   my ($year, $month, $day) = @_;
-
-   my $juliandate= $day-32075+int(1461*($year+4800+int(($month-14)/12))/4);
-   $juliandate += int(367*($month-2-int(($month-14)/12)*12)/12);
-   $juliandate = $juliandate -int(3*int(($year+4900+int(($month-14)/12))/100)/4);
-
-   return $juliandate;
-
-}
-
-
-# # # # # # # # #
-#
-# ($year, $month, $day) = convert_date_julian_to_gregorian($juliandate)
-#
-# From: http://aa.usno.navy.mil/faq/docs/JD_Formula.html
-# Uses: Fliegel, H. F. and van Flandern, T. C. (1968). Communications of the ACM, Vol. 11, No. 10 (October, 1968).
-# Translated from the FORTRAN
-#
-# # # # # # # # #
-
-sub convert_date_julian_to_gregorian {
-
-   my $juliandate = shift @_;
-
-   my ($L, $N, $I, $J, $K);
-
-   $L = $juliandate+68569;
-   $N = int(4*$L/146097);
-   $L = $L-int((146097*$N+3)/4);
-   $I = int(4000*($L+1)/1461001);
-   $L = $L-int(1461*$I/4)+31;
-   $J = int(80*$L/2447);
-   $K = $L-int(2447*$J/80);
-   $L = int($J/11);
-   $J = $J+2-12*$L;
-   $I = 100*($N-49)+$I+$L;
-
-   return ($I, $J, $K);
-
-}
-
-
-# * * * * * * * * * * * * * * * * * * * *
-#
-# Number Formatting code from SocialCalc 1.1.0
-#
-# * * * * * * * * * * * * * * * * * * * *
-
-   our %NFStrings = (
-"decimalchar" => ".",
-"separatorchar" => ",",
-"currencychar" => '$',
-"daynames" => "Sunday Monday Tuesday Wednesday Thursday Friday Saturday",
-"daynames3" => "Sun Mon Tue Wed Thu Fri Sat ",
-"monthnames3" => "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",
-"monthnames" => "January February March April May June July August September October November December",
-      );
-
-
-# # # # # # # # #
-#
 # $result = format_number_with_format_string($value, $format_string, $currency_char)
 #
 # Use a format string to format a numeric value. Returns a string with the result.
@@ -2375,9 +2378,9 @@ sub format_number_with_format_string {
    my $fractionpos = 0;
    my $textcolor = "";
    my $textstyle = "";
-   my $separatorchar = $NFStrings{"separatorchar"};
+   my $separatorchar = $WKCStrings{"separatorchar"};
    $separatorchar =~ s/ /&nbsp;/g;
-   my $decimalchar = $NFStrings{"decimalchar"};
+   my $decimalchar = $WKCStrings{"decimalchar"};
    $decimalchar =~ s/ /&nbsp;/g;
 
    my $oppos = $sectionstart;
@@ -2539,11 +2542,11 @@ sub format_number_with_format_string {
             }
          elsif ($operandstrlc eq "ddd") {
             $cval = int($rawvalue+6) % 7;
-            $result .= (split(/ /, $NFStrings{"daynames3"}))[$cval];
+            $result .= (split(/ /, $WKCStrings{"daynames3"}))[$cval];
             }
          elsif ($operandstrlc eq "dddd") {
             $cval = int($rawvalue+6) % 7;
-            $result .= (split(/ /, $NFStrings{"daynames"}))[$cval];
+            $result .= (split(/ /, $WKCStrings{"daynames"}))[$cval];
             }
          elsif ($operandstrlc eq "m") {
             $result .= "$mn";
@@ -2553,13 +2556,13 @@ sub format_number_with_format_string {
             $result .= substr("$cval", -2);
             }
          elsif ($operandstrlc eq "mmm") {
-            $result .= (split(/ /, $NFStrings{"monthnames3"}))[$mn-1];
+            $result .= (split(/ /, $WKCStrings{"monthnames3"}))[$mn-1];
             }
          elsif ($operandstrlc eq "mmmm") {
-            $result .= (split(/ /, $NFStrings{"monthnames"}))[$mn-1];
+            $result .= (split(/ /, $WKCStrings{"monthnames"}))[$mn-1];
             }
          elsif ($operandstrlc eq "mmmmm") {
-            $result .= substr((split(/ /, $NFStrings{"monthnames"}))[$mn-1], 0, 1);
+            $result .= substr((split(/ /, $WKCStrings{"monthnames"}))[$mn-1], 0, 1);
             }
          elsif ($operandstrlc eq "h") {
             $result .= "$hrs";
@@ -2887,10 +2890,10 @@ sub parse_format_bracket {
    if (substr($bracketstr, 0, 1) eq '$') { # currency
       $operator = $cmd_currency;
       if ($bracketstr =~ m/^\$(.+?)(\-.+?){0,1}$/) {
-         $operand = $1 || $NFStrings{"currencychar"} || '$';
+         $operand = $1 || $WKCStrings{"currencychar"} || '$';
          }
       else {
-         $operand = substr($bracketstr,1) || $NFStrings{"currencychar"} || '$';
+         $operand = substr($bracketstr,1) || $WKCStrings{"currencychar"} || '$';
          }
       }
    elsif ($bracketstr eq '?$') {
@@ -2927,3 +2930,65 @@ sub parse_format_bracket {
 
    }
 
+# # # # # # # # #
+#
+# $juliandate = convert_date_gregorian_to_julian($year, $month, $day)
+#
+# From: http://aa.usno.navy.mil/faq/docs/JD_Formula.html
+# Uses: Fliegel, H. F. and van Flandern, T. C. (1968). Communications of the ACM, Vol. 11, No. 10 (October, 1968).
+# Translated from the FORTRAN
+#
+#      I= YEAR
+#      J= MONTH
+#      K= DAY
+#C
+#      JD= K-32075+1461*(I+4800+(J-14)/12)/4+367*(J-2-(J-14)/12*12)
+#     2    /12-3*((I+4900+(J-14)/12)/100)/4
+#
+# # # # # # # # #
+
+sub convert_date_gregorian_to_julian {
+
+   my ($year, $month, $day) = @_;
+
+   my $juliandate= $day-32075+int(1461*($year+4800+int(($month-14)/12))/4);
+   $juliandate += int(367*($month-2-int(($month-14)/12)*12)/12);
+   $juliandate = $juliandate -int(3*int(($year+4900+int(($month-14)/12))/100)/4);
+
+   return $juliandate;
+
+}
+
+
+# # # # # # # # #
+#
+# ($year, $month, $day) = convert_date_julian_to_gregorian($juliandate)
+#
+# From: http://aa.usno.navy.mil/faq/docs/JD_Formula.html
+# Uses: Fliegel, H. F. and van Flandern, T. C. (1968). Communications of the ACM, Vol. 11, No. 10 (October, 1968).
+# Translated from the FORTRAN
+#
+# # # # # # # # #
+
+sub convert_date_julian_to_gregorian {
+
+   my $juliandate = shift @_;
+
+   my ($L, $N, $I, $J, $K);
+
+   $L = $juliandate+68569;
+   $N = int(4*$L/146097);
+   $L = $L-int((146097*$N+3)/4);
+   $I = int(4000*($L+1)/1461001);
+   $L = $L-int(1461*$I/4)+31;
+   $J = int(80*$L/2447);
+   $K = $L-int(2447*$J/80);
+   $L = int($J/11);
+   $J = $J+2-12*$L;
+   $I = 100*($N-49)+$I+$L;
+
+   return ($I, $J, $K);
+
+}
+
+1;

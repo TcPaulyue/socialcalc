@@ -316,11 +316,89 @@ SocialCalc.Popup.CreatePopupDiv = function(id, attribs) {
 
    pos = SocialCalc.GetElementPositionWithScroll(spcdata.mainele);
 
+   if (typeof $ != 'undefined' && $(spcdata.mainele).parents('.st-spreadsheet-drawer').size() > 0) {
+       /* Socialtext-specific jQuery hack for dialog boxes */
+       var css = {
+            'z-index': 100,
+            'background-color': 'white',
+            'border': '1px solid black'
+       };
+       switch (spcdata.attribs.direction) {
+           case 'top left': {
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   - 175
+               ) + 'px';
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   - 85
+               ) + 'px';
+               break;
+           }
+           case 'top right': {
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   + 1
+               ) + 'px';
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   - 85
+               ) + 'px';
+               break;
+           }
+           case 'top right small': {
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   + 1
+               ) + 'px';
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   - 35
+               ) + 'px';
+               break;
+           }
+           case 'bottom': {
+               css.left = '90px';
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   + 47
+               ) + 'px';
+               css['-moz-box-shadow'] = css['-webkit-box-shadow'] = css['box-shadow'] = '0px 20px 10px -10px #888';
+               break;
+           }
+           default: {
+               css.top = (
+                   $(spcdata.mainele).offset().top
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().top
+                   + 47
+               ) + 'px';
+               css.left = (
+                   $(spcdata.mainele).offset().left
+                   - $(spcdata.mainele).parents('.st-spreadsheet-drawer:first').offset().left
+                   + 1
+               ) + 'px';
+               css['-moz-box-shadow'] = css['-webkit-box-shadow'] = css['box-shadow'] = '0px 20px 10px -10px #888';
+               break;
+           }
+       }
+       $(main).css(css);
+   }
+   else {
+
    main.style.top = (pos.top+spcdata.mainele.offsetHeight)+"px";
    main.style.left = (pos.left)+"px";
    main.style.zIndex = 100;
    main.style.backgroundColor = "#FFF";
    main.style.border = "1px solid black";
+
+   }
 
    if (attribs.width) {
       main.style.width = attribs.width;
@@ -572,7 +650,7 @@ SocialCalc.Popup.Types.List.Create = function(type, id, attribs) {
 
    spcdata.mainele = ele;
 
-   ele.innerHTML = '<input style="cursor:pointer;width:100px;font-size:smaller;" onfocus="this.blur();" onclick="SocialCalc.Popup.CClick(\''+id+'\');" value="">';
+   ele.innerHTML = '<input style="cursor:pointer;width:'+(spcdata.attribs.inputWidth||'100px')+';font-size:smaller;" onfocus="this.blur();" onclick="SocialCalc.Popup.CClick(\''+id+'\');" value="">';
 
    spcdata.options = []; // set to nothing - use Initialize to fill
 

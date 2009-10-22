@@ -180,7 +180,7 @@ SocialCalc.TableEditor = function(context) {
 
    this.ctrlkeyFunction = function(editor, charname) {
 
-      var ta, cell, position, cmd, sel, cliptext;
+      var ta, ha, cell, position, cmd, sel, cliptext;
 
       switch (charname) {
          case "[ctrl-c]":
@@ -212,6 +212,32 @@ SocialCalc.TableEditor = function(context) {
                }
             editor.EditorScheduleSheetCommands(cmd); // queue up command to put on SocialCalc clipboard
 
+            /* Copy as HTML: This fails rather badly as it won't paste into Notepad as tab-delimited text. Oh well.
+
+                ha = editor.pasteHTMLarea;
+                if (editor.range.hasrange) {
+                    cell = SocialCalc.GetEditorCellElement(editor, editor.range.top, editor.range.left);
+                }
+                else {
+                    cell = SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
+                }
+                if (cell) position = SocialCalc.GetElementPosition(cell.element);
+             
+                if (ha) {
+                    if (position) {
+                        ha.style.left = (position.left-1)+"px";
+                        ha.style.top = (position.top-1)+"px";
+                    }
+                    ha.style.visibility="visible";
+                    cliptext = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.CreateSheetSave(editor.context.sheetobj, sel), "html");
+                    ha.innerHTML = cliptext.replace(/<tr\b[^>]*>[\d\D]*?<\/tr\b[^>]*>/i, '');
+                    ha.focus();
+
+                    var range = document.body.createControlRange();
+                    range.addElement(ha.childNodes[0]);
+                    range.select();
+                }
+            */
             ta.style.display = "block";
             ta.value = cliptext; // must follow "block" setting for Webkit
             ta.focus();
@@ -220,6 +246,14 @@ SocialCalc.TableEditor = function(context) {
                var s = SocialCalc.GetSpreadsheetControlObject();
                if (!s) return;
                var editor = s.editor;
+               /*
+               var ha = editor.pasteHTMLarea;
+               if (ha) {
+                 ha.blur();
+                 ha.innerHTML = '';
+                 ha.style.visibility = 'hidden';
+               }
+               */
                var ta = editor.pasteTextarea;
                ta.blur();
                ta.style.display = "none";
@@ -229,31 +263,86 @@ SocialCalc.TableEditor = function(context) {
             return true;
 
          case "[ctrl-v]":
-            ta = editor.pasteTextarea;
-            ta.value = "";
-            cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
-            if (cell) {
-               position = SocialCalc.GetElementPosition(cell.element);
-               ta.style.left = (position.left-1)+"px";
-               ta.style.top = (position.top-1)+"px";
-               }
-            ta.style.display = "block";
-            ta.value = "";  // must follow "block" setting for Webkit
-            ta.focus();
+
+            var showPasteTextArea = function() {
+                ta = editor.pasteTextarea;
+                ta.value = "";
+
+                cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
+                if (cell) {
+                    position = SocialCalc.GetElementPosition(cell.element);
+                    ta.style.left = (position.left-1)+"px";
+                    ta.style.top = (position.top-1)+"px";
+                }
+                ta.style.display = "block";
+                ta.value = "";  // must follow "block" setting for Webkit
+                ta.focus();
+            };
+
+            ha = editor.pasteHTMLarea;
+            if (ha) {
+                /* Pasting via HTML - Currently IE only */
+                ha.style.visibility = "visible";
+                ha.focus();
+            }
+            else {
+                showPasteTextArea();
+            }
             window.setTimeout(function() {
                var s = SocialCalc.GetSpreadsheetControlObject();
                if (!s) return;
                var editor = s.editor;
-               var ta = editor.pasteTextarea;
-               var value = ta.value;
-               ta.blur();
-               ta.style.display = "none";
-               var cmd = "";
+               var value = null;
+               var isPasteSameAsClipboard = false;
+
+               ha = editor.pasteHTMLarea;
+               if (ha) {
+                 /* IE: We append a U+FFFC to every TD that's not the last of its row,
+                  *     then we obtain innerText, then turn U+FFFC back to \t,
+                  *     thereby preserving the cell separations (which gets discarded
+                  *     if we simply paste via textarea.
+                  */
+                 var _ObjectReplacementCharacter_ = String.fromCharCode(0xFFFC);
+                 var html = ha.innerHTML;
+
+                 if (html.search(/<(?![Bb][Rr])[A-Za-z]/) >= 0) {
+                    /* HTML Paste: Mark TDs with U+FFFC accordingly.. */
+                    ha.innerHTML = html.replace(
+                        /(?:<\/[Tt][Dd]>)/g,
+                        _ObjectReplacementCharacter_
+                    );
+                }
+                else {
+                    /* Text Paste: In IE, \t is transformed into &nbsp;, so replace them with U+FFFC. */
+                    ha.innerHTML = html.replace(
+                        /&[Nn][Bb][Ss][Pp];/g,
+                        _ObjectReplacementCharacter_
+                    );
+                 }
+
+                 value = ha.innerText.replace(new RegExp(_ObjectReplacementCharacter_, 'g'), '\t');
+
+                 ha.innerHTML = '';
+                 ha.blur();
+                 ha.style.visibility = "hidden";
+               }
+               else {
+                 var ta = editor.pasteTextarea;
+                 value = ta.value;
+                 ta.blur();
+                 ta.style.display = "none";
+               }
+
+               value = value.replace(/\r\n/g, "\n").replace(/\n?$/, '\n');
                var clipstr = SocialCalc.ConvertSaveToOtherFormat(SocialCalc.Clipboard.clipboard, "tab");
-               value = value.replace(/\r\n/g, "\n");
+               if (value == clipstr || (value.length-clipstr.length==1 && value.substring(0,value.length-1)==clipstr)) {
+                  isPasteSameAsClipboard = true;
+               }
+
+               var cmd = "";
                // pastes SocialCalc clipboard if did a Ctrl-C and contents still the same
                // Webkit adds an extra blank line, so need to allow for that
-               if (value != clipstr && (value.length-clipstr.length!=1 || value.substring(0,value.length-1)!=clipstr)) {
+               if (!isPasteSameAsClipboard) {
                   cmd = "loadclipboard "+
                   SocialCalc.encodeForSave(SocialCalc.ConvertOtherFormatToSave(value, "tab")) + "\n";
                   }
@@ -276,33 +365,7 @@ SocialCalc.TableEditor = function(context) {
 
          case "[ctrl-s]": // !!!! temporary hack
             if (!SocialCalc.Constants.AllowCtrlS) break;
-            window.setTimeout(
-               function() {
-                  var s = SocialCalc.GetSpreadsheetControlObject();
-                  if (!s) return;
-                  var editor = s.editor;
-                  var sheet = editor.context.sheetobj;
-                  var cell = sheet.GetAssuredCell(editor.ecell.coord);
-                  var ntvf = cell.nontextvalueformat ? sheet.valueformats[cell.nontextvalueformat-0] || "" : "";
-                  var newntvf = window.prompt("Advanced Feature:\n\nCustom Numeric Format or Command", ntvf);
-                  if (newntvf != null) { // not cancelled
-                     if (newntvf.match(/^cmd:/)) {
-                        cmd = newntvf.substring(4); // execute as command
-                        }
-                     else {
-                        if (editor.range.hasrange) {
-                           sel = SocialCalc.crToCoord(editor.range.left, editor.range.top)+
-                              ":"+SocialCalc.crToCoord(editor.range.right, editor.range.bottom);
-                           }
-                        else {
-                          sel = editor.ecell.coord;
-                           }
-                        cmd = "set "+sel+" nontextvalueformat "+newntvf;
-                        }
-                     editor.EditorScheduleSheetCommands(cmd);
-                     }
-                  },
-               200);
+            $('#st-advanced-format-button-link').click();
             return false;
 
          default:
@@ -442,8 +505,8 @@ SocialCalc.CreateTableEditor = function(editor, width, height) {
    editor.height = height;
 
    editor.griddiv = document.createElement("div");
-   editor.tablewidth = width - scc.defaultTableControlThickness;
-   editor.tableheight = height - scc.defaultTableControlThickness;
+   editor.tablewidth = Math.max(0, width - scc.defaultTableControlThickness);
+   editor.tableheight = Math.max(0, height - scc.defaultTableControlThickness);
    editor.griddiv.style.width=editor.tablewidth+"px";
    editor.griddiv.style.height=editor.tableheight+"px";
    editor.griddiv.style.overflow="hidden";
@@ -465,7 +528,7 @@ SocialCalc.CreateTableEditor = function(editor, width, height) {
    editor.horizontaltablecontrol.CreateTableControl();
    AssignID(editor, editor.horizontaltablecontrol.main, "tablecontrolh");
 
-   var table, tbody, tr, td, img, anchor, ta;
+   var table, tbody, tr, td, img, anchor, ta, ha;
 
    table = document.createElement("table");
    editor.layouttable = table;
@@ -512,6 +575,18 @@ SocialCalc.CreateTableEditor = function(editor, width, height) {
 
    editor.toplevel.appendChild(editor.pasteTextarea);
 
+   var div = document.createElement("div");
+   div.innerHTML = '    <br/>';
+   if (div.firstChild.nodeType == 1) {
+     /* We are running in IE -- Using HTML-based area for Ctrl-V */
+     ha = document.createElement("div"); // used for ctrl-v where an invisible html area is needed
+     editor.pasteHTMLarea = ha;
+     editor.toplevel.appendChild(editor.pasteHTMLarea);
+     ha.contentEditable = true;
+     AssignID(editor, editor.pasteHTMLarea, "pastehtmlarea");
+     SocialCalc.setStyles(ha, "display:block;visibility:hidden;position:absolute;height:1px;width:1px;opacity:0;filter:alpha(opacity=0);overflow:hidden");
+   }
+
    SocialCalc.MouseWheelRegister(editor.toplevel, {WheelMove: SocialCalc.EditorProcessMouseWheel, editor: editor});
 
    if (editor.inputBox) { // this seems to fix an obscure bug with Firefox 2 Mac where Ctrl-V doesn't get fired right
@@ -548,8 +623,8 @@ SocialCalc.ResizeTableEditor = function(editor, width, height) {
    editor.toplevel.style.width = width+"px";
    editor.toplevel.style.height = height+"px";
 
-   editor.tablewidth = width - scc.defaultTableControlThickness;
-   editor.tableheight = height - scc.defaultTableControlThickness;
+   editor.tablewidth = Math.max(0, width - scc.defaultTableControlThickness);
+   editor.tableheight = Math.max(0, height - scc.defaultTableControlThickness);
    editor.griddiv.style.width=editor.tablewidth+"px";
    editor.griddiv.style.height=editor.tableheight+"px";
 
@@ -1539,6 +1614,12 @@ SocialCalc.EditorOpenCellEdit = function(editor) {
    if (!editor.ecell) return true; // no ecell
    if (!editor.inputBox) return true; // no input box, so no editing
    if (editor.inputBox.element.disabled) return true; // multi-line: ignore
+   if (editor.inputBox.element.style.display == 'none') {
+       for (f in editor.StatusCallback) {
+           editor.StatusCallback[f].func(editor, "editecell", null, editor.StatusCallback[f].params);
+       }
+       return true; // no inputBox display, so no editing
+   }
    editor.inputBox.ShowInputBox(true);
    editor.inputBox.Focus();
    editor.state = "inputboxdirect";
@@ -1607,6 +1688,12 @@ SocialCalc.EditorProcessKey = function(editor, ch, e) {
             }
          if (!editor.ecell) return true; // no ecell
          if (!editor.inputBox) return true; // no inputBox so no editing
+         if (editor.inputBox.element.style.display == 'none') {
+             for (f in editor.StatusCallback) {
+                 editor.StatusCallback[f].func(editor, "editecell", ch, editor.StatusCallback[f].params);
+             }
+             return true; // no inputBox display, so no editing
+         }
          editor.inputBox.element.disabled = false; // make sure editable
          editor.state = "input";
          editor.inputBox.ShowInputBox(true);
@@ -2606,7 +2693,20 @@ SocialCalc.DoPositionCalculations = function() {
 
    editor.timeout = null;
 
-   editor.CalculateEditorPositions();
+   var ok = false;
+   try {
+       editor.CalculateEditorPositions();
+       ok = true;
+   } catch (e) {}
+
+   if (!ok) {
+       if (typeof $ != 'undefined') {
+           $(window).trigger('resize');
+           setTimeout( SocialCalc.DoPositionCalculations, 400);
+       }
+       return; /* Workaround IE6 partial-initialized-DOM bug */
+   }
+
    editor.verticaltablecontrol.PositionTableControlElements();
    editor.horizontaltablecontrol.PositionTableControlElements();
 
@@ -3040,10 +3140,16 @@ SocialCalc.InputBox.prototype.Blur = function() {return this.element.blur();};
 SocialCalc.InputBox.prototype.Select = function(t) {
    switch (t) {
       case "end":
-         if (this.element.selectionStart!=undefined) {
+         if (document.selection && document.selection.createRange) {
+            /* IE 4+ - Safer than setting .selectionEnd as it also works for Textareas. */
+            var range = document.selection.createRange().duplicate();
+            range.moveToElementText(this.element);
+            range.collapse(false);
+            range.select();
+         } else if (this.element.selectionStart!=undefined) {
             this.element.selectionStart=this.element.value.length;
             this.element.selectionEnd=this.element.value.length;
-            }
+         }
          break;
       }
    };
@@ -4850,7 +4956,8 @@ SocialCalc.ProcessKeyDown = function(e) {
 
    e = e || window.event;
 
-   if (e.which==undefined) { // IE
+   // IE and Safari 3.1+ won't fire keyPress, so check for special keys here.
+   if (e.which==undefined || (typeof e.keyIdentifier == "string")) {
       ch = kt.specialKeysCommon[e.keyCode];
       if (!ch) {
          if (e.ctrlKey) {
