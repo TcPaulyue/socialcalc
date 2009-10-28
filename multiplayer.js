@@ -2,6 +2,7 @@
     var cookieName = 'socialcalc';
     var _username = Math.random().toString();
     var _hadSnapshot;
+    var mq = [];
 
     SocialCalc.Callbacks.broadcast = function(type, data) {
         data = data || {};
@@ -9,17 +10,30 @@
         data.type = type;
 
         $.cookie(cookieName, _username, { path: '/chat' });
-
-        $.ajax({
-            url: "/chat/sc/post",
-            data: data,
-            type: 'post',
-            dataType: 'json',
-            success: function(r) { }
-        });
+        mq.push(data);
     }
 
     $(function(){
+        var doPost = function() {
+            if (mq.length == 0) {
+                setTimeout(doPost, 100);
+                return;
+            }
+
+            var data = mq.shift();
+            $.ajax({
+                url: "/chat/sc/post",
+                data: data,
+                type: 'post',
+                dataType: 'json',
+                complete: function(r) {
+                    doPost();
+                }
+            });
+        };
+
+        doPost();
+
         var onNewEvent = function(data) {
             if (data.user == _username) return;
             if (data.to && data.to != _username) return;
