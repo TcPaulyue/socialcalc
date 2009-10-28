@@ -2136,7 +2136,6 @@ SocialCalc.MoveECell = function(editor, newcell) {
 
       if (SocialCalc.Callbacks.broadcast) {
           SocialCalc.Callbacks.broadcast('ecell', { original: editor.ecell.coord, ecell: newcell });
-          SocialCalc.Callbacks.broadcast('ask.ecell');
       }
 
       cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
