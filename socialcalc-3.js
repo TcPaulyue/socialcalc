@@ -319,7 +319,7 @@ SocialCalc.Sheet.prototype.EncodeSheetAttributes = function() {return SocialCalc
 SocialCalc.Sheet.prototype.DecodeCellAttributes = function(coord, attribs, range) {return SocialCalc.DecodeCellAttributes(this, coord, attribs, range);};
 SocialCalc.Sheet.prototype.DecodeSheetAttributes = function(attribs) {return SocialCalc.DecodeSheetAttributes(this, attribs);};
 
-SocialCalc.Sheet.prototype.ScheduleSheetCommands = function(cmd, saveundo) {return SocialCalc.ScheduleSheetCommands(this, cmd, saveundo);};
+SocialCalc.Sheet.prototype.ScheduleSheetCommands = function(cmd, saveundo, isRemote) {return SocialCalc.ScheduleSheetCommands(this, cmd, saveundo, isRemote);};
 SocialCalc.Sheet.prototype.SheetUndo = function() {return SocialCalc.SheetUndo(this);};
 SocialCalc.Sheet.prototype.SheetRedo = function() {return SocialCalc.SheetRedo(this);};
 SocialCalc.Sheet.prototype.CreateAuditString = function() {return SocialCalc.CreateAuditString(this);};
@@ -1599,7 +1599,10 @@ SocialCalc.SheetCommandInfo = { // only one of these
 // statuscallback is called at the beginning (cmdstart) and end (cmdend).
 //
 
-SocialCalc.ScheduleSheetCommands = function(sheet, cmdstr, saveundo) {
+SocialCalc.ScheduleSheetCommands = function(sheet, cmdstr, saveundo, isRemote) {
+   if (SocialCalc.Callbacks.broadcast_command && !isRemote) {
+       SocialCalc.Callbacks.broadcast_command(cmdstr, saveundo);
+   }
 
    var sci = SocialCalc.SheetCommandInfo;
 
