@@ -1,5 +1,8 @@
 [Multiplayer Socialcalc]
 
 1. Install Tatsumaki from http://github.com/miyagawa/Tatsumaki/.
+    - be sure to install Module::Install and Module::Install::ReadmeFromPod from CPAN first;
+    - then install Plack and JSON::XS (probably notest install to save time);
+    - then finally run "perl Makefile.PL; make ; sudo make install" in Tatsumaki.
 2. Run: "perl multiserver.pl".
 3. Open port 9999 in multiple browsers. Currently tested: Safari4, Firefox3.5.
