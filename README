@@ -1,9 +1,11 @@
-Multiplayer Socialcalc
-Setup Instructions
+
+                                -=[Multiplayer Socialcalc]=-
+
+                                .oO( Setup Instructions )Oo.
 
 0. Install Tatsumaki's dependencies:
 
-    $ sudo perl -MCPAN -eshell
+    sudo cpan
     cpan> notest install Module::Install Module::Install::ReadmeFromPod Plack JSON::XS
 
 1. Then check out http://github.com/miyagawa/Tatsumaki/ and build:
@@ -19,10 +21,13 @@ Setup Instructions
     cd socialcalc
     perl multiserver.pl
 
-3. Open port 9999 in multiple browsers.
+3. Open port 9999 in multiple browsers.  See red triangles representing peer cursor.
+   Type in a browser, appears in all others!
 
 Currently tested: Safari4, Firefox3, Firefox2.
+
 Not supported yet: IE (needs to use jquery.ev instead - fix upcoming).
 
 Enjoy!
 Audrey
+
