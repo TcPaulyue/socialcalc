@@ -66,12 +66,12 @@
                     if (message.data.original) {
                         var origCR = SocialCalc.coordToCr(message.data.original);
                         var origCell = SocialCalc.GetEditorCellElement(editor, origCR.row, origCR.col);
-                        origCell.element.className = origCell.element.className.replace(/ defaultComment/, '');
+                        origCell.element.className = origCell.element.className.replace(/ defaultPeer/, '');
                     }
 
                     var cr = SocialCalc.coordToCr(message.data.ecell);
                     var cell = SocialCalc.GetEditorCellElement(editor, cr.row, cr.col);
-                    cell.element.className += ' defaultComment';
+                    cell.element.className += ' defaultPeer';
                     break;
                 }
                 case 'ask.snapshot': {
@@ -153,7 +153,7 @@
         function _subscribe()
         {
             _chatSubscription = $.cometd.subscribe('/chat/demo', _self.receive);
-            _membersSubscription = $.cometd.subscribe('/chat/members', _self.members);
+//            _membersSubscription = $.cometd.subscribe('/chat/members', _self.members);
         }
 
         function _connectionEstablished()
@@ -167,10 +167,12 @@
             $.cometd.startBatch();
             _unsubscribe();
             _subscribe();
+            /*
             $.cometd.publish('/service/members', {
                 user: _username,
                 room: '/chat/demo'
             });
+            */
             $.cometd.publish('/chat/demo', {
                 user: _username,
                 membership: 'join',
@@ -192,7 +194,7 @@
                     chat: 'Connection to Server Broken'
                 }
             });
-            $('#members').empty();
+//            $('#members').empty();
         }
 
         function _connectionClosed()
