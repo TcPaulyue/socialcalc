@@ -4,12 +4,14 @@
     var chat = new Chat();
     chat.join();
 
+
     // Broadcasting code
 
     function Chat()
     {
         var _self = this;
         var _username = Math.random().toString();
+        var _hadSnapshot;
         var _lastUser;
         var _disconnecting;
         var _chatSubscription;
@@ -46,31 +48,55 @@
             _disconnecting = true;
         };
 
-        this.send = function(cmdstr, saveundo)
-        {
-            $.cometd.publish('/chat/demo', {
-                user: _username,
-                status: 'execute',
-                cmdstr: cmdstr,
-                saveundo: saveundo
-            });
+        this.broadcast = function(type, message) {
+            message = message || {};
+            message.user = _username;
+            message.type = type;
+            $.cometd.publish('/chat/demo', message);
         };
 
-        this.receive = function(message)
-        {
-            var fromUser = message.data.user;
-            var status = message.data.status;
+        this.receive = function(message) {
+            if (message.data.user == _username) return;
+            if (message.data.to && message.data.to != _username) return;
             // var membership = message.data.membership;
             //var text = message.data.chat;
-            switch (status) {
-                case 'execute': {
-                    if (fromUser != _username) {
-                        SocialCalc.CurrentSpreadsheetControlObject.context.sheetobj.ScheduleSheetCommands(
-                            message.data.cmdstr,
-                            message.data.saveundo,
-                            true // isRemote = true
-                        );
+            switch (message.data.type) {
+                case 'ask.snapshot': {
+                    _self.broadcast('msg.snapshot', {
+                        to: message.data.user,
+                        snapshot: SocialCalc.CurrentSpreadsheetControlObject.CreateSpreadsheetSave()
+                    });
+                    break;
+                }
+                case 'msg.snapshot': {
+                    if (_hadSnapshot) break;
+                    _hadSnapshot = true;
+                    var spreadsheet = SocialCalc.CurrentSpreadsheetControlObject;
+                    var parts = spreadsheet.DecodeSpreadsheetSave(message.data.snapshot);
+                    if (parts) {
+                        if (parts.sheet) {
+                            spreadsheet.sheet.ResetSheet();
+                            spreadsheet.ParseSheetSave(message.data.snapshot.substring(parts.sheet.start, parts.sheet.end));
+                        }
+                        if (parts.edit) {
+                            spreadsheet.editor.LoadEditorSettings(message.data.snapshot.substring(parts.edit.start, parts.edit.end));
+                        }
                     }
+                    if (spreadsheet.editor.context.sheetobj.attribs.recalc=="off") {
+                        spreadsheet.ExecuteCommand('redisplay', '');
+                    }
+                    else {
+                        spreadsheet.ExecuteCommand('recalc', '');
+                    }
+
+                    break;
+                }
+                case 'execute': {
+                    SocialCalc.CurrentSpreadsheetControlObject.context.sheetobj.ScheduleSheetCommands(
+                        message.data.cmdstr,
+                        message.data.saveundo,
+                        true // isRemote = true
+                    );
                     break;
                 }
             }
@@ -132,7 +158,8 @@
             });
             $.cometd.endBatch();
 
-            SocialCalc.Callbacks.broadcast_command = chat.send;
+            SocialCalc.Callbacks.broadcast = chat.broadcast;
+            $(function(){ chat.broadcast('ask.snapshot') });
         }
 
         function _connectionBroken()
