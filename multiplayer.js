@@ -34,7 +34,6 @@
                     if (data.original) {
                         var origCR = SocialCalc.coordToCr(data.original);
                         var origCell = SocialCalc.GetEditorCellElement(editor, origCR.row, origCR.col);
-                        console.log(origCell.element.className);
                         origCell.element.className = origCell.element.className.replace(find, '');
                     }
 
@@ -95,7 +94,16 @@
             }
         };
 
-        $.ev.handlers['*'] = onNewEvent;
-        $.ev.loop('/chat/sc/poll?session=' + Math.random());
+        if (typeof DUI != 'undefined') {
+            var s = new DUI.Stream();
+            s.listen('application/json', function(payload) {
+                var event = eval('(' + payload + ')');
+                onNewEvent(event);
+            });
+            s.load('/chat/sc/mxhrpoll?session=' + Math.random());
+        } else {
+            $.ev.handlers['*'] = onNewEvent;
+            $.ev.loop('/chat/sc/poll?session=' + Math.random());
+        }
     });
 })(jQuery);
