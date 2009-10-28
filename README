@@ -1,0 +1,5 @@
+[Multiplayer Socialcalc]
+
+1. Install Data::UUID and JSON::XS from CPAN.
+2. Run: "perl multiserver.pl".
+3. Open index.html in multiple browsers. Currently tested: Safari.

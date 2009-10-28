@@ -2133,6 +2133,12 @@ SocialCalc.MoveECell = function(editor, newcell) {
 
    if (editor.ecell) {
       if (editor.ecell.coord==newcell) return newcell; // already there - don't do anything and don't tell anybody
+
+      if (SocialCalc.Callbacks.broadcast) {
+          SocialCalc.Callbacks.broadcast('ecell', { original: editor.ecell.coord, ecell: newcell });
+          SocialCalc.Callbacks.broadcast('ask.ecell');
+      }
+
       cell=SocialCalc.GetEditorCellElement(editor, editor.ecell.row, editor.ecell.col);
       delete highlights[editor.ecell.coord];
       if (editor.range2.hasrange &&
@@ -2142,6 +2148,9 @@ SocialCalc.MoveECell = function(editor, newcell) {
          }
       editor.UpdateCellCSS(cell, editor.ecell.row, editor.ecell.col);
       editor.SetECellHeaders(""); // set to regular col/rowname styles
+      }
+      else if (SocialCalc.Callbacks.broadcast) {
+          SocialCalc.Callbacks.broadcast('ecell', { ecell: newcell });
       }
    newcell = editor.context.cellskip[newcell] || newcell;
    editor.ecell = SocialCalc.coordToCr(newcell);
@@ -2720,6 +2729,7 @@ SocialCalc.DoPositionCalculations = function() {
 //!!! Need to now check to see if this positioned controls out of the editing area
 //!!! (such as when there is a large wrapped cell and it pushes the pane boundary too far down).
 
+      if (SocialCalc.Callbacks.broadcast) SocialCalc.Callbacks.broadcast('ask.ecell');
    }
 
 SocialCalc.CalculateRowPositions = function(editor, panenum, positions, sizes) {

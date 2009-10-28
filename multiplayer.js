@@ -58,17 +58,37 @@
         this.receive = function(message) {
             if (message.data.user == _username) return;
             if (message.data.to && message.data.to != _username) return;
-            // var membership = message.data.membership;
-            //var text = message.data.chat;
+
+            var editor = SocialCalc.CurrentSpreadsheetControlObject.editor;
+
             switch (message.data.type) {
+                case 'ecell': {
+                    if (message.data.original) {
+                        var origCR = SocialCalc.coordToCr(message.data.original);
+                        var origCell = SocialCalc.GetEditorCellElement(editor, origCR.row, origCR.col);
+                        origCell.element.className = origCell.element.className.replace(/ defaultComment/, '');
+                    }
+
+                    var cr = SocialCalc.coordToCr(message.data.ecell);
+                    var cell = SocialCalc.GetEditorCellElement(editor, cr.row, cr.col);
+                    cell.element.className += ' defaultComment';
+                    break;
+                }
                 case 'ask.snapshot': {
-                    _self.broadcast('msg.snapshot', {
+                    _self.broadcast('snapshot', {
                         to: message.data.user,
                         snapshot: SocialCalc.CurrentSpreadsheetControlObject.CreateSpreadsheetSave()
                     });
+                    // FALL THROUGH
+                }
+                case 'ask.ecell': {
+                    _self.broadcast('ecell', {
+                        to: message.data.user,
+                        ecell: editor.ecell.coord
+                    });
                     break;
                 }
-                case 'msg.snapshot': {
+                case 'snapshot': {
                     if (_hadSnapshot) break;
                     _hadSnapshot = true;
                     var spreadsheet = SocialCalc.CurrentSpreadsheetControlObject;
@@ -159,6 +179,8 @@
             $.cometd.endBatch();
 
             SocialCalc.Callbacks.broadcast = chat.broadcast;
+            SocialCalc.Callbacks.broadcast = chat.broadcast;
+
             $(function(){ chat.broadcast('ask.snapshot') });
         }
 
