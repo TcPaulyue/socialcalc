@@ -1,5 +1,5 @@
 [Multiplayer Socialcalc]
 
-1. Install Data::UUID and JSON::XS from CPAN.
+1. Install Tatsumaki from http://github.com/miyagawa/Tatsumaki/.
 2. Run: "perl multiserver.pl".
-3. Open index.html in multiple browsers. Currently tested: Safari.
+3. Open port 9999 in multiple browsers. Currently tested: Safari4, Firefox3.5.
