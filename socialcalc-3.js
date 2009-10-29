@@ -1601,7 +1601,9 @@ SocialCalc.SheetCommandInfo = { // only one of these
 
 SocialCalc.ScheduleSheetCommands = function(sheet, cmdstr, saveundo, isRemote) {
    if (SocialCalc.Callbacks.broadcast && !isRemote) {
-       SocialCalc.Callbacks.broadcast('execute', { cmdstr: cmdstr, saveundo: saveundo });
+       if (cmdstr != 'redisplay' && cmdstr != 'set sheet defaulttextvalueformat text-wiki') {
+           SocialCalc.Callbacks.broadcast('execute', { cmdstr: cmdstr, saveundo: saveundo });
+       }
    }
 
    var sci = SocialCalc.SheetCommandInfo;

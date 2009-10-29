@@ -1,7 +1,8 @@
 (function($){
     var cookieName = 'socialcalc';
     var _username = Math.random().toString();
-    var _hadSnapshot;
+    var _isMaster = false;
+    var _hadSnapshot = false;
     var mq = [];
 
     SocialCalc.Callbacks.broadcast = function(type, data) {
@@ -59,10 +60,12 @@
                     break;
                 }
                 case 'ask.snapshot': {
-                    SocialCalc.Callbacks.broadcast('snapshot', {
-                        to: data.user,
-                        snapshot: SocialCalc.CurrentSpreadsheetControlObject.CreateSpreadsheetSave()
-                    });
+                    if (_isMaster) {
+                        SocialCalc.Callbacks.broadcast('snapshot', {
+                            to: data.user,
+                            snapshot: SocialCalc.CurrentSpreadsheetControlObject.CreateSpreadsheetSave()
+                        });
+                    }
                     // FALL THROUGH
                 }
                 case 'ask.ecell': {
@@ -108,7 +111,7 @@
             }
         };
 
-        if (typeof DUI != 'undefined') {
+        if ((!$.browser.msie) && typeof DUI != 'undefined') {
             var s = new DUI.Stream();
             s.listen('application/json', function(payload) {
                 var event = eval('(' + payload + ')');
@@ -119,5 +122,12 @@
             $.ev.handlers['*'] = onNewEvent;
             $.ev.loop('/chat/sc/poll?session=' + Math.random());
         }
+
+        SocialCalc.Callbacks.broadcast('ask.snapshot');
+        setTimeout(function(){
+            if (!_hadSnapshot) {
+                _isMaster = _hadSnapshot = true;
+            }
+        }, 10000);
     });
 })(jQuery);
