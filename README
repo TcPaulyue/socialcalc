@@ -1,5 +1,6 @@
-
                                 -=[Multiplayer Socialcalc]=-
+
+  >> See also docs/hopscotch-yapctiny.pdf for my YAPC::Tiny slides on this project. <<
 
                                 .oO( Setup Instructions )Oo.
 
@@ -24,10 +25,9 @@
 3. Open port 9999 in multiple browsers.  See red triangles representing peer cursor.
    Type in a browser, appears in all others!
 
-Currently tested: Safari4, Firefox3, Firefox2.
+Currently tested: Safari4, Firefox3, Firefox2 (with trailing cursor bug - see TODO).
 
-Not supported yet: IE (needs to use jquery.ev instead - fix upcoming).
+Not verified yet: IE.
 
-Enjoy!
+Share & Enjoy!
 Audrey
-
