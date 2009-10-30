@@ -1,7 +1,6 @@
 (function($){
     var cookieName = 'socialcalc';
     var _username = Math.random().toString();
-    var _isMaster = false;
     var _hadSnapshot = false;
     var mq = [];
 
@@ -60,12 +59,10 @@
                     break;
                 }
                 case 'ask.snapshot': {
-                    if (_isMaster) {
-                        SocialCalc.Callbacks.broadcast('snapshot', {
-                            to: data.user,
-                            snapshot: SocialCalc.CurrentSpreadsheetControlObject.CreateSpreadsheetSave()
-                        });
-                    }
+                    SocialCalc.Callbacks.broadcast('snapshot', {
+                        to: data.user,
+                        snapshot: SocialCalc.CurrentSpreadsheetControlObject.CreateSpreadsheetSave()
+                    });
                     // FALL THROUGH
                 }
                 case 'ask.ecell': {
@@ -124,10 +121,8 @@
         }
 
         SocialCalc.Callbacks.broadcast('ask.snapshot');
-        setTimeout(function(){
-            if (!_hadSnapshot) {
-                _isMaster = _hadSnapshot = true;
-            }
-        }, 10000);
+
+        /* Wait for 30 secs for someone to send over the current snapshot before timing out. */
+        setTimeout(function(){ _hadSnapshot = true }, 30000);
     });
 })(jQuery);
