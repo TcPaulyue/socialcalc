@@ -1082,7 +1082,7 @@ SocialCalc.CanonicalizeSheet = function(sheetobj, full) {
 
 SocialCalc.EncodeCellAttributes = function(sheet, coord) {
 
-   var value, i, b, bb;
+   var value, i, b, bb, parts;
    var result = {};
 
    var InitAttrib = function(name) {
@@ -1414,7 +1414,7 @@ SocialCalc.DecodeCellAttributes = function(sheet, coord, newattribs, range) {
 
    // borders: bX for X = t, r, b, and l; bXthickness, bXstyle, bXcolor ignored
 
-   for (i=0; i<4; i++) {
+   for (var i=0; i<4; i++) {
       b = "trbl".charAt(i);
       bb = "b"+b;
       CheckChanges(bb, sheet.borderstyles[cell[bb]], bb);

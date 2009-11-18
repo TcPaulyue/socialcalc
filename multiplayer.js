@@ -114,7 +114,7 @@
                 var event = eval('(' + payload + ')');
                 onNewEvent(event);
             });
-            s.load('/chat/sc/mxhrpoll?session=' + Math.random());
+            s.load('/chat/sc/mxhrpoll');
         } else {
             $.ev.handlers['*'] = onNewEvent;
             $.ev.loop('/chat/sc/poll?session=' + Math.random());

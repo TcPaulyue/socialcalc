@@ -36,8 +36,7 @@ __PACKAGE__->asynchronous(1);
 sub get {
     my($self, $channel) = @_;
 
-    my $session = $self->request->param('session')
-        or Tatsumaki::Error::HTTP->throw(500, "'session' needed");
+    my $session = $self->request->param('session') || rand(1);
 
     $self->multipart_xhr_push(1);
 
