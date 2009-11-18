@@ -1,6 +1,6 @@
 package App::SocialCalc::Multiplayer;
-use 5.006;
-our $VERSION = 20091118;
+use 5.008;
+our $VERSION = 20091119;
 
 use strict;
 use warnings;
@@ -91,6 +91,8 @@ sub post {
 1;
 
 __END__
+
+=encoding utf8
 
 =head1 NAME
 
