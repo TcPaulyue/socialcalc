@@ -1,0 +1,18 @@
+use 5.006;
+use strict;
+use inc::Module::Install;
+
+name 'App-SocialCalc-Multiplayer';
+author '唐鳳 <cpan@audreyt.org>';
+license 'CPAL';
+repository 'http://github.com/audreyt/socialcalc';
+all_from 'Multiplayer.pm';
+readme_from 'Multiplayer.pm';
+requires 'Tatsumaki';
+requires 'File::ShareDir';
+install_share 'socialcalc';
+install_script 'socialcalc-multiplayer.pl';
+
+sign; WriteAll;
+
+1;
