@@ -1,9 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-BEGIN {
-    eval { require Tatsumaki } or die "Please install Tatsumaki from http://github.com/miyagawa/Tatsumaki first!\n"
-}
+use Tatsumaki 0.1010 ;
 use Tatsumaki::Error;
 use Tatsumaki::Application;
 use Tatsumaki::HTTPClient;
@@ -54,7 +52,7 @@ use base qw(Tatsumaki::Handler);
 
 sub post {
     my($self, $channel) = @_;
-    my $v = $self->request->params;
+    my $v = $self->request->parameters;
     Encode::_utf8_on($v->{$_}) for keys %$v;
     my $mq = Tatsumaki::MessageQueue->instance($channel);
     $mq->publish($v);
