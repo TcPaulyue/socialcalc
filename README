@@ -21,7 +21,9 @@
 3. See red triangles representing peer cursors.
    Type in a browser, appears in all others!
 
-Currently tested: Safari 5, Chrome 5, Firefox 4 beta1.
+Browsers currently tested:
+    Native WebSocket: Safari 5, Chrome 5, Firefox 4 beta1.
+    Flash emulation: Firefox 3, Opera 10.
 
 Share & Enjoy!
 Audrey
