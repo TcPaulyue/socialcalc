@@ -1,4 +1,4 @@
-use 5.006;
+use 5.008001;
 use strict;
 use inc::Module::Install;
 
@@ -8,7 +8,7 @@ license 'CPAL';
 repository 'http://github.com/audreyt/socialcalc';
 all_from 'Multiplayer.pm';
 readme_from 'Multiplayer.pm';
-requires 'Tatsumaki';
+requires 'Web::Hippie';
 requires 'File::ShareDir';
 install_share 'socialcalc';
 install_script 'socialcalc-multiplayer.pl';
