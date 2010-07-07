@@ -120,6 +120,7 @@ socialcalc/SocialCalcServersideUtilities.pm
 socialcalc/socialcalcspreadsheetcontrol.js
 socialcalc/socialcalctableeditor.js
 socialcalc/socialcalcviewer.js
+socialcalc/socketpolicy.pl
 socialcalc/ssctrltest1.html
 socialcalc/third-party/class-js/lib/Class.js
 socialcalc/third-party/class-js/README
