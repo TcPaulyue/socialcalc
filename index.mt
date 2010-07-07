@@ -1,8 +1,8 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+? my ($env, $host, $room) = @_;
 <html>
 <head>
-<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Multiplayer SocialCalc Demo</title>
+<title>SocialCalc Demo</title>
+
 <script type="text/javascript" src="socialcalcconstants.js"></script>
 <script type="text/javascript" src="socialcalc-3.js"></script>
 <script type="text/javascript" src="socialcalctableeditor.js"></script>
@@ -15,14 +15,19 @@
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Emitter/HTML.js"></script>
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Parser.js"></script>
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Parser/Wikitext.js"></script>
-<script src="third-party/tatsumaki/jquery-1.3.2.min.js"></script>
-<script src="third-party/tatsumaki/DUI.js"></script>
-<script src="third-party/tatsumaki/Stream.js"></script>
-<script src="third-party/tatsumaki/jquery.ev.js"></script>
-<script src="third-party/tatsumaki/jquery.md5.js"></script>
-<script src="third-party/tatsumaki/jquery.cookie.js"></script>
-<script src="third-party/tatsumaki/jquery.oembed.js"></script>
-<script src="multiplayer.js"></script>
+
+<script src="/static/jquery-1.3.2.min.js"></script>
+<script src="/static/jquery.md5.js"></script>
+<script src="/static/jquery.cookie.js"></script>
+<script src="/static/pretty.js"></script>
+<script src="/static/jquery.ev.js"></script>
+<script src="/static/DUI.js"></script>
+<script src="/static/Stream.js"></script>
+<script src="/static/hippie.js"></script>
+<script src="/static/hippie.pipe.js"></script>
+<script src="/static/json2.js"></script>
+
+<script src="player.js"></script>
 
 <link rel="stylesheet" type="text/css" href="socialcalc.css">
 <link rel="stylesheet" type="text/css" href="index.css">

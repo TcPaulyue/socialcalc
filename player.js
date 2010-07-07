@@ -1,40 +1,35 @@
 (function($){
+    var hpipe;
     var cookieName = 'socialcalc';
     var _username = Math.random().toString();
     var _hadSnapshot = false;
+    var isConnected = false;
     var mq = [];
 
     SocialCalc.Callbacks.broadcast = function(type, data) {
+        if (!isConnected) return;
         data = data || {};
         data.user = _username;
         data.type = type;
-
-        $.cookie(cookieName, _username, { path: '/chat' });
-        mq.push(data);
+        hpipe.send({ type: 'message', data: data });
     }
 
     $(function(){
-        var doPost = function() {
-            if (mq.length == 0) {
-                setTimeout(doPost, 100);
-                return;
-            }
+        hpipe = new Hippie.Pipe();
 
-            var data = mq.shift();
-            $.ajax({
-                url: "/chat/sc/post",
-                data: data,
-                type: 'post',
-                dataType: 'json',
-                complete: function(r) {
-                    doPost();
-                }
+        jQuery(hpipe)
+            .bind("connected", function () {
+                isConnected = true;
+                SocialCalc.Callbacks.broadcast('ask.snapshot');
+                /* Wait for 30 secs for someone to send over the current snapshot before timing out. */
+                setTimeout(function(){ _hadSnapshot = true }, 30000);
+            })
+            .bind("message.message", function (e, d) {
+                onNewEvent(d.data);
             });
-        };
-
-        doPost();
 
         var onNewEvent = function(data) {
+            if (!isConnected) return;
             if (data.user == _username) return;
             if (data.to && data.to != _username) return;
 
@@ -108,21 +103,6 @@
             }
         };
 
-        if ((!$.browser.msie) && typeof DUI != 'undefined') {
-            var s = new DUI.Stream();
-            s.listen('application/json', function(payload) {
-                var event = eval('(' + payload + ')');
-                onNewEvent(event);
-            });
-            s.load('/chat/sc/mxhrpoll');
-        } else {
-            $.ev.handlers['*'] = onNewEvent;
-            $.ev.loop('/chat/sc/poll?session=' + Math.random());
-        }
-
-        SocialCalc.Callbacks.broadcast('ask.snapshot');
-
-        /* Wait for 30 secs for someone to send over the current snapshot before timing out. */
-        setTimeout(function(){ _hadSnapshot = true }, 30000);
+        hpipe.init();
     });
 })(jQuery);

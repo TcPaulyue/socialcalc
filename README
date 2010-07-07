@@ -4,25 +4,18 @@
 
                                 .oO( Setup Instructions )Oo.
 
-0. Install Tatsumaki's dependencies:
+0. Install Web::Hippie:
 
     sudo cpan
-    cpan> notest install Module::Install Module::Install::ReadmeFromPod Plack JSON::XS
+    cpan> notest install Web::Hippie
 
-1. Then check out http://github.com/miyagawa/Tatsumaki/ and build:
-
-    git clone git://github.com/miyagawa/Tatsumaki.git
-    cd Tatsumaki
-    perl Makefile.PL; make ; sudo make install
-    cd ..
-
-2. Then check out this project and run the stand-alone server:
+1. Then check out this project and run the stand-alone server:
 
     git clone git://github.com/audreyt/socialcalc.git
     cd socialcalc
     perl multiserver.pl
 
-3. Open port 9999 in multiple browsers.  See red triangles representing peer cursor.
+2. Open port 9999 in multiple browsers.  See red triangles representing peer cursor.
    Type in a browser, appears in all others!
 
 Currently tested: Safari4, Firefox3, Firefox2 (with trailing cursor bug - see TODO).
