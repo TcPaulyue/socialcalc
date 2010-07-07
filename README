@@ -4,10 +4,10 @@
 
                                 .oO( Setup Instructions )Oo.
 
-0. Install Web::Hippie:
+0. Install Web::Hippie, JSON::XS, Twiggy, Text::MicroTemplate::File and Path::Class:
 
     sudo cpan
-    cpan> notest install Web::Hippie
+    cpan> notest install Web::Hippie JSON::XS Twiggy Text::MicroTemplate::File Path::Class
 
 1. Then check out this project and run the stand-alone server:
 
