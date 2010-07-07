@@ -32,6 +32,7 @@
             if (!isConnected) return;
             if (data.user == _username) return;
             if (data.to && data.to != _username) return;
+            if (typeof SocialCalc == 'undefined') return;
 
             var editor = SocialCalc.CurrentSpreadsheetControlObject.editor;
 

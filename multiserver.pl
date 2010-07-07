@@ -4,5 +4,5 @@ use strict;
 use Plack::Runner;
 
 my $runner = Plack::Runner->new;
-$runner->parse_options(-p => 9999);
+$runner->parse_options(-s => Twiggy => -p => 9999);
 $runner->run;
