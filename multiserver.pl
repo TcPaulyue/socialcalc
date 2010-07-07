@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+BEGIN { system("sudo perl socketpolicy.pl &") };
 use strict;
 use Plack::Runner;
 

@@ -23,6 +23,17 @@
 <script src="/static/jquery.ev.js"></script>
 <script src="/static/DUI.js"></script>
 <script src="/static/Stream.js"></script>
+
+  <!-- Include these three JS files: -->
+  <script>
+      WEB_SOCKET_SWF_LOCATION = "/third-party/web-socket-js/WebSocketMain.swf";
+      // Set this to dump debug message from Flash to console.log:
+      // WEB_SOCKET_DEBUG = true;
+  </script>
+  <script type="text/javascript" src="third-party/web-socket-js/swfobject.js"></script>
+  <script type="text/javascript" src="third-party/web-socket-js/FABridge.js"></script>
+  <script type="text/javascript" src="third-party/web-socket-js/web_socket.js"></script>
+
 <script src="/static/hippie.js"></script>
 <script src="/static/hippie.pipe.js"></script>
 <script src="/static/json2.js"></script>
