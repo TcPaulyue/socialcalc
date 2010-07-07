@@ -18,6 +18,9 @@ use Web::Hippie::App::JSFiles;
 use AnyMQ;
 
 BEGIN {
+    use File::Basename;
+    chdir dirname(__FILE__);
+
     no warnings 'redefine';
     my $decode = \&JSON::decode_json;
     *JSON::decode_json = sub ($) {
@@ -80,7 +83,7 @@ builder {
     mount '/static' =>
         Plack::App::Cascade->new
                 ( apps => [ Web::Hippie::App::JSFiles->new->to_app,
-                            Plack::App::File->new( root => 'third-party/tatsumaki' )->to_app,
+                            Plack::App::File->new( root => 'third-party/hippie' )->to_app,
                         ] );
     mount '/' => 
         Plack::App::Cascade->new
