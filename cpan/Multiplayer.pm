@@ -1,6 +1,6 @@
 package App::SocialCalc::Multiplayer;
 use 5.008001;
-our $VERSION = 20100708;
+our $VERSION = 20100928;
 
 1;
 
@@ -22,9 +22,9 @@ Run this in a host computer:
 Then connect to port 9999 with two or more browsers, and start collaboratively
 edit a web-based spreadsheet.
 
-The C<sudo> is needed for providing Flash-emulated support for non-WebSocket
-browsers, which requires serving a policy file on port 843; if all clients
-are already WebSocket-capable, then C<sudo> is not needed.
+C<sudo> privilege is needed for providing Flash-emulated support for
+non-WebSocket browsers, which requires serving a policy file on port 843;
+if all clients are already WebSocket-capable, then C<sudo> is not needed.
 
 =head1 DESCRIPTION
 

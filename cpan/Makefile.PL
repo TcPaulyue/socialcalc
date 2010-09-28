@@ -8,7 +8,7 @@ license         'CPAL';
 repository      'http://github.com/audreyt/socialcalc';
 all_from        'Multiplayer.pm';
 readme_from     'Multiplayer.pm';
-requires        'Web::Hippie';
+requires        'Web::Hippie' => 0.34;
 requires        'JSON::XS';
 requires        'Twiggy';
 requires        'Text::MicroTemplate::File';
