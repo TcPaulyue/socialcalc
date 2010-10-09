@@ -1,6 +1,6 @@
 package App::SocialCalc::Multiplayer;
 use 5.008001;
-our $VERSION = 20100928;
+our $VERSION = 20101010;
 
 1;
 
