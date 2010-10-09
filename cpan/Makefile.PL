@@ -10,7 +10,7 @@ all_from        'Multiplayer.pm';
 readme_from     'Multiplayer.pm';
 requires        'Web::Hippie' => 0.34;
 requires        'JSON::XS';
-requires        'Twiggy';
+requires        'Feersum' => 0.981;
 requires        'Text::MicroTemplate::File';
 requires        'Path::Class';
 requires        'File::ShareDir';
