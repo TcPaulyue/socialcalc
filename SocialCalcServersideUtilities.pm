@@ -263,7 +263,7 @@ sub ParseSheetSave {
                ($valuetype, $value, $type, $rest) = split(/:/, $rest, 4);
                $cell->{datavalue} = ($value =~ /\\[cnb]/) ? DecodeFromSave($value) : $value;
                if (substr($valuetype,0,1) eq "n") {
-                  $cell->{datatype} = "n";
+                  $cell->{datatype} = "v";
                   }
                else {
                   $cell->{datatype} = "t";
