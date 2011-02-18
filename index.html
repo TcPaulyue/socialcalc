@@ -8,23 +8,21 @@
   <style type="text/css">
     body {
       margin-top: 1.0em;
-      background-color: #2a1e33;
-      font-family: "Helvetica,Arial,FreeSans";
-      color: #ffffff;
+      font-family: Ubuntu, Candara, "Droid Sans", Arial, Helvetica;
     }
     #container {
       margin: 0 auto;
       width: 700px;
     }
-    h1 { font-size: 3.8em; color: #d5e1cc; margin-bottom: 3px; }
+    h1 { font-size: 3.8em; margin-bottom: 3px; }
     h1 .small { font-size: 0.4em; }
     h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #d5e1cc; }
-    h3 { text-align: center; color: #d5e1cc; }
-    a { color: #d5e1cc; }
+    h2 { font-size: 1.5em }
+    h3 { text-align: center }
+    a { }
     .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
     .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
+    pre { padding: 15px;}
     hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
     .footer { text-align:center; padding-top:30px; font-style: italic; }
   </style>
@@ -49,22 +47,39 @@
       Multiplayer SocialCalc
     </div>
 
-    <p>Dan Bricklin's web spreadsheet engine amended with multi-user, real-time editing.</p><h2>Dependencies</h2>
-<p>Web::Hippie
-JSON::XS
-Twiggy
-Text::MicroTemplate::File
-Path::Class</p>
-<h2>Install</h2>
-<p>Simply run the server in place:
+    <p>Dan Bricklin's web spreadsheet engine amended with multi-user, real-time editing.</p>
 
-    perl multiserver.pl</p>
+    <p>For more information, please read the book chapter on our <a href="https://github.com/audreyt/socialcalc/wiki">project wiki</a>.</p>
+    
+    <h2>Dependencies</h2>
+    <ul>
+        <li>JSON::XS</li>
+        <li>Path::Class</li>
+        <li>Text::MicroTemplate::File</li>
+        <li>Twiggy</li>
+        <li>Web::Hippie</li>
+    </ul>
+<h2>Install</h2>
+<p>After installing the dependencies above from CPAN, simply run the server in place:
+<pre>
+    perl multiserver.pl
+</pre>
+</p>
 <h2>License</h2>
 <p>Common Public Attribution License</p>
 <h2>Authors</h2>
-<p>Audrey Tang (audrey.tang@socialtext.com)<br/>唐鳳 (audreyt@audreyt.org)<br/>Brandon Noard (brandon.noard@socialtext.com)<br/>DanBricklin (danb@bricklin.com)<br/>Luke Closs (gravatar@5thplane.com)<br/>Gabe Wachob (gwachob@wachob.com)<br/>Ingy dot Net (ingy.dot.net@socialtext.com)<br/>Stash (jeremy.stashewsky@socialtext.com)<br/>Tracy Ruggles (tracy.ruggles@socialtext.com)</p>
+<ul>
+    <li>Dan Bricklin &lt;danb@bricklin.com&gt;</li>
+    <li>Brandon Noard &lt;brandon.noard@socialtext.com&gt;</li>
+    <li>Gabe Wachob &lt;gwachob@wachob.com&gt;</li>
+    <li>Ingy dot Net &lt;ingy.dot.net@socialtext.com&gt;</li>
+    <li>Luke Closs &lt;gravatar@5thplane.com&gt;</li>
+    <li>Stash &lt;jeremy.stashewsky@socialtext.com&gt;</li>
+    <li>Tracy Ruggles &lt;tracy.ruggles@socialtext.com&gt;</li>
+</ul></li>
+</p>
 <h2>Contact</h2>
-<p>唐鳳 (audreyt@audreyt.org)</p>
+<ul><li>唐鳳 &lt;audreyt@audreyt.org&gt;</li></ul>
 
 
     <h2>Download</h2>
