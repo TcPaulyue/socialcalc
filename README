@@ -4,10 +4,10 @@
 
                                 .oO( Setup Instructions )Oo.
 
-0. Install Web::Hippie, JSON::XS, Feersum, Text::MicroTemplate::File and Path::Class:
+0. Install Web::Hippie, JSON::XS, EV, Feersum, Text::MicroTemplate::File and Path::Class:
 
     sudo cpan
-    cpan> notest install Web::Hippie JSON::XS Feersum Text::MicroTemplate::File Path::Class
+    cpan> notest install Web::Hippie JSON::XS ExtUtils::MakeMaker EV Feersum Text::MicroTemplate::File Path::Class
 
 1. Then check out this project and run the stand-alone server:
 
