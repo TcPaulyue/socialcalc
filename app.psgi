@@ -1,37 +1,19 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use FindBin;
-
-use Pod::Usage;
-
-use AnyEvent::Socket;
-use AnyEvent::Handle;
-use Text::MicroTemplate::File;
-use Path::Class qw/file dir/;
-use JSON;
 use Plack::Request;
 use Plack::Builder;
+use Plack::App::File;
 use Plack::App::Cascade;
-use Web::Hippie::App::JSFiles;
+use File::Basename;
+BEGIN { chdir dirname(__FILE__) };
+use lib dirname(__FILE__)."/third-party/lib";
 
-use AnyMQ;
-
-BEGIN {
-    use File::Basename;
-    chdir dirname(__FILE__);
-
-    no warnings 'redefine';
-    my $decode = \&JSON::decode_json;
-    *JSON::decode_json = sub ($) {
-        local $@;
-        return eval { $decode->(@_) };
-    };
+my $html = do {
+    local $/;
+    open my $fh, '<', 'index.mt';
+    <$fh>;
 };
-
-my $mtf = Text::MicroTemplate::File->new(
-    include_path => ['.'],
-);
 
 my $app = sub {
     my $env = shift;
@@ -40,7 +22,7 @@ my $app = sub {
 
     if ($req->path eq '/') {
         $res->content_type('text/html; charset=utf-8');
-        $res->content($mtf->render_file('index.mt', $env));
+        $res->content($html);
     } else {
         $res->code(404);
     }
@@ -48,43 +30,26 @@ my $app = sub {
     $res->finalize;
 };
 
+use PocketIO;
+my $path_to_socket_io = "./third-party/Socket.IO-node";
+
 builder {
-    mount '/_hippie' => builder {
-        enable "+Web::Hippie";
-        enable "+Web::Hippie::Pipe";
-        sub {
-            my $env = shift;
-            my $room = $env->{'hippie.args'};
-            my $topic = $env->{'hippie.bus'}->topic($room);
-
-            if ($env->{PATH_INFO} eq '/new_listener') {
-                $env->{'hippie.listener'}->subscribe( $topic );
-            }
-            elsif ($env->{PATH_INFO} eq '/message') {
-                my $msg = $env->{'hippie.message'};
-                $msg->{time} = time;
-                $msg->{address} = $env->{REMOTE_ADDR};
-                $topic->publish($msg);
-            }
-            else {
-                my $h = $env->{'hippie.handle'}
-                    or return [ '400', [ 'Content-Type' => 'text/plain' ], [ "" ] ];
-
-                if ($env->{PATH_INFO} eq '/error') {
-                    warn "==> disconnecting $h";
-                }
-                else {
-                    die "unknown hippie message";
-                }
-            }
-            return [ '200', [ 'Content-Type' => 'application/hippie' ], [ "" ] ]
-        };
-    };
-    mount '/static' =>
-        Plack::App::Cascade->new
-                ( apps => [ Web::Hippie::App::JSFiles->new->to_app,
-                            Plack::App::File->new( root => 'third-party/hippie' )->to_app,
-                        ] );
+    mount '/socket.io/socket.io.js' => Plack::App::File->new(
+        file => "$path_to_socket_io/support/socket.io-client/socket.io.js"
+    );
+    mount '/socket.io/lib' => Plack::App::File->new(
+        root => "$path_to_socket_io/support/socket.io-client/lib"
+    );
+    mount '/socket.io' => PocketIO->new(
+        handler => sub {
+            my $self = shift;
+            $self->on_message(sub {
+                my $self = shift;
+                my ($message) = @_;
+                $self->send_broadcast($message); # {message => [$self->id, $message]});
+            });
+        }
+    );
     mount '/' => 
         Plack::App::Cascade->new
                 ( apps => [ $app,

@@ -1,4 +1,3 @@
-? my ($env, $host, $room) = @_;
 <html>
 <head>
 <title>SocialCalc Demo</title>
@@ -15,29 +14,8 @@
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Emitter/HTML.js"></script>
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Parser.js"></script>
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Parser/Wikitext.js"></script>
-
-<script src="/static/jquery-1.3.2.min.js"></script>
-<script src="/static/jquery.md5.js"></script>
-<script src="/static/jquery.cookie.js"></script>
-<script src="/static/pretty.js"></script>
-<script src="/static/jquery.ev.js"></script>
-<script src="/static/DUI.js"></script>
-<script src="/static/Stream.js"></script>
-
-  <!-- Include these three JS files: -->
-  <script>
-      WEB_SOCKET_SWF_LOCATION = "/third-party/web-socket-js/WebSocketMain.swf";
-      // Set this to dump debug message from Flash to console.log:
-      // WEB_SOCKET_DEBUG = true;
-  </script>
-  <script type="text/javascript" src="third-party/web-socket-js/swfobject.js"></script>
-  <script type="text/javascript" src="third-party/web-socket-js/FABridge.js"></script>
-  <script type="text/javascript" src="third-party/web-socket-js/web_socket.js"></script>
-
-<script src="/static/hippie.js"></script>
-<script src="/static/hippie.pipe.js"></script>
-<script src="/static/json2.js"></script>
-
+<script src="third-party/Socket.IO-node/example/json.js"></script>
+<script src="socket.io/socket.io.js"></script>
 <script src="player.js"></script>
 
 <link rel="stylesheet" type="text/css" href="socialcalc.css">
