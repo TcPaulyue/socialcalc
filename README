@@ -4,10 +4,10 @@
 
                                 .oO( Setup Instructions )Oo.
 
-0. Install Fliggy, Protocol::WebSocket and Try::Tiny:
+0. Install JSON, Fliggy, Protocol::WebSocket and Try::Tiny:
 
     sudo cpan
-    cpan> notest install Fliggy Protocol::WebSocket Try::Tiny
+    cpan> notest install JSON Fliggy Protocol::WebSocket Try::Tiny
 
 1. Then check out this project and run the stand-alone server:
 

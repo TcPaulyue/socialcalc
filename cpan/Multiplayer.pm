@@ -1,6 +1,6 @@
 package App::SocialCalc::Multiplayer;
 use 5.008001;
-our $VERSION = 20101010;
+our $VERSION = 20110626;
 
 1;
 
@@ -16,15 +16,11 @@ App::SocialCalc::Multiplayer - Multiplayer SocialCalc Server with WebSocket
 
 Run this in a host computer:
 
-    % sudo socialcalc-multiplayer.pl
+    % socialcalc-multiplayer.pl
     Accepting requests at http://0.0.0.0:9999/
 
 Then connect to port 9999 with two or more browsers, and start collaboratively
 edit a web-based spreadsheet.
-
-C<sudo> privilege is needed for providing Flash-emulated support for
-non-WebSocket browsers, which requires serving a policy file on port 843;
-if all clients are already WebSocket-capable, then C<sudo> is not needed.
 
 =head1 DESCRIPTION
 
@@ -32,8 +28,7 @@ This is a convenient bundle around a prototypical WebSocket-SocialCalc
 integration hack, based on the demonstration in a YAPC::Tiny talk for Chupei.pm
 during late October 2009.
 
-The presentation slides are available at:
-L<http://pugs.blogs.com/talks/hopscotch-yapctiny.pdf>
+Please see L<https://github.com/audreyt/socialcalc/wiki> for more information.
 
 =head1 AUTHORS
 
@@ -43,7 +38,7 @@ L<http://pugs.blogs.com/talks/hopscotch-yapctiny.pdf>
 
 This work is derived from the SocialCalc program:
 
-    Copyright (C) 2009-2010 Socialtext, Inc.
+    Copyright (C) 2009-2011 Socialtext, Inc.
     All Rights Reserved.
 
 The upstream source tree was derived from:
@@ -58,7 +53,7 @@ as detailed in the paragraph below.
 =head1 CC0 1.0 Universal
 
 To the extent possible under law, 唐鳳 has waived all copyright and related
-or neighboring rights to App-SocialCalc-Multiplayer.
+or neighboring rights to L<App::SocialCalc::Multiplayer>.
 
 This work is published from Taiwan.
 
