@@ -34,6 +34,8 @@ use PocketIO;
 my $path_to_socket_io = "./third-party/Socket.IO-node";
 
 builder {
+    enable 'ContentLength';
+
     mount '/socket.io/socket.io.js' => Plack::App::File->new(
         file => "$path_to_socket_io/support/socket.io-client/socket.io.js"
     );

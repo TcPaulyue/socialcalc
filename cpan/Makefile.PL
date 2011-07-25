@@ -21,6 +21,7 @@ requires        'File::ShareDir';
 requires        'Protocol::WebSocket';
 requires        'JSON';
 requires        'Try::Tiny';
+requires        'Plack::Middleware::ContentLength';
 
 install_share   'socialcalc';
 install_script  'socialcalc-multiplayer.pl';
