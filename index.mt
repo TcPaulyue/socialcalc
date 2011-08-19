@@ -14,8 +14,9 @@
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Emitter/HTML.js"></script>
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Parser.js"></script>
 <script type="text/javascript" src="third-party/wikiwyg/lib/Document/Parser/Wikitext.js"></script>
-<script src="third-party/Socket.IO-node/example/json.js"></script>
-<script src="socket.io/socket.io.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/zappa/jquery.js"></script>
+<script src="/zappa/zappa.js"></script>
 <script src="player.js"></script>
 
 <link rel="stylesheet" type="text/css" href="socialcalc.css">
