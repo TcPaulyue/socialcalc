@@ -48,7 +48,6 @@
         return at({
           broadcast: function() {
             var cell, cr, editor, find, origCR, origCell, parts, peerClass, spreadsheet;
-            console.log("CLIENT:");
             if (!(typeof SocialCalc !== "undefined" && SocialCalc !== null ? SocialCalc.isConnected : void 0)) {
               return;
             }

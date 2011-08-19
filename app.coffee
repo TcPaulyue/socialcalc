@@ -32,7 +32,6 @@ require('zappa') port, host, ->
       setTimeout (-> SocialCalc.hadSnapshot = true), 30000
 
     at broadcast: ->
-      console.log "CLIENT:"
       return unless SocialCalc?.isConnected
       return if @user == SocialCalc._username
       return if @to and @to != SocialCalc._username
