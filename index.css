@@ -1,3 +1,6 @@
+form {
+    display: none;
+}
 div.wiki p {
     margin: 0;
 }

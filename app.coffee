@@ -4,25 +4,65 @@ host = process.env.VCAP_APP_HOST || '127.0.0.1'
 require('zappa') port, host, ->
   enable 'serve jquery'
   app.use express.static __dirname
-  
+  def db: require('redis').createClient()
+
   get '/': ->
     response.contentType 'text/html'
     response.sendfile 'index.mt'
+
+  get '/edit': ->
+    response.contentType 'text/html'
+    response.sendfile 'index.mt'
+
+  get '/start': -> render 'start'
+  get '/new': ->
+    response.redirect require("uuid-pure").newId(10)
+
+  view room: ->
+    coffeescript ->
+      window.location = '/#' + window.location.pathname.replace(/.*\//, '')
+
+  view start: ->
+    div id:"topnav_wrap", -> div id:"navigation"
+    div id:"intro-left", ->
+      h1 "MeetingCalc"
+      h2 "MeetingCalc is a web spreadsheet."
+      p "Your data is saved on the web, and people can edit the same document at the same time. Everybody's changes are instantly reflected on all screens."
+      p "Work together on inventories, survey forms, list managements, brainstorming sessions and more!"
+      div id:"intro-links", ->
+        a id:"newpadbutton", href:"/new", ->
+            span "Create new pad"
+            small "No sign-up, start editing instantly"
+
+  view layout: ->
+    html ->
+      head ->
+        title "MeetingCalc"
+        link href:"/start.css", rel:"stylesheet", type:"text/css"
+      body id:"framedpagebody", class:"home", ->
+        div id:"top", -> @body
   
   at broadcast: ->
-    io.sockets.emit 'broadcast', this
+    #io.sockets.in(@room).emit 'broadcast', @
+    io.sockets.emit 'broadcast', @
   
   client '/player.js': ->
     SocialCalc ?= {}
     SocialCalc._username = Math.random().toString()
     SocialCalc.isConnected = true
     SocialCalc.hadSnapshot = false
+    SocialCalc._room = window.location.hash.replace('#', '')
+    unless SocialCalc._room
+        window.location = '/start'
+        return
     
     connect()
+    #subscribe(SocialCalc._room)
 
     SocialCalc.Callbacks.broadcast = (type, data={}) ->
       return unless SocialCalc.isConnected
       data.user = SocialCalc._username
+      data.room = SocialCalc._room
       data.type = type
       emit 'broadcast', data
 
@@ -35,6 +75,8 @@ require('zappa') port, host, ->
       return unless SocialCalc?.isConnected
       return if @user == SocialCalc._username
       return if @to and @to != SocialCalc._username
+      return if @room and @room != SocialCalc._room
+
       editor = SocialCalc.CurrentSpreadsheetControlObject.editor
       switch @type
         when "ecell"
@@ -77,3 +119,8 @@ require('zappa') port, host, ->
         when "execute"
           SocialCalc.CurrentSpreadsheetControlObject.context.sheetobj.ScheduleSheetCommands @cmdstr, @saveundo, true
           break
+
+  get '/:room': ->
+    @layout = no
+    render 'room', @
+
