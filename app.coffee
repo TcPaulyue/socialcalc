@@ -45,17 +45,27 @@ require('zappa') port, host, ->
   at broadcast: ->
     #io.sockets.in(@room).emit 'broadcast', @
     switch @type
+      when 'ask.ecells'
+        db.hgetall "ecell-#{@room}", (err, values) =>
+          io.sockets.emit 'broadcast',
+            type: 'ecells'
+            ecells: values
+            room: @room
+        return
+      when 'my.ecell'
+        db.hset "ecell-#{@room}", @user, @ecell
+        return
       when 'execute'
-        db.rpush @room, @cmdstr, =>
+        db.rpush "log-#{@room}", @cmdstr, =>
           io.sockets.emit 'broadcast', @
         return
       when 'ask.snapshot'
-        db.lrange @room, 0, -1, (err, values) =>
-          console.log "LRANGE : #{@room}+#{@user}... #{values}"
-          io.sockets.emit 'broadcast', 
+        db.lrange "log-#{@room}", 0, -1, (err, values) =>
+          io.sockets.emit 'broadcast',
             type: 'log'
             log: values
             to: @user
+            room: @room
         return
     io.sockets.emit 'broadcast', @
   
@@ -90,17 +100,25 @@ require('zappa') port, host, ->
 
       editor = SocialCalc.CurrentSpreadsheetControlObject.editor
       switch @type
-        when "ecell"
-          peerClass = " " + @user + " defaultPeer"
-          find = new RegExp(peerClass, "g")
-          if @original
-            origCR = SocialCalc.coordToCr(@original)
-            origCell = SocialCalc.GetEditorCellElement(editor, origCR.row, origCR.col)
-            origCell.element.className = origCell.element.className.replace(find, "")
-          cr = SocialCalc.coordToCr(@ecell)
-          cell = SocialCalc.GetEditorCellElement(editor, cr.row, cr.col)
-          cell.element.className += peerClass if cell.element.className.search(find) == -1
+        when "ecells"
+          for user, ecell of @ecells
+            continue if user == SocialCalc._username
+            peerClass = " " + user + " defaultPeer"
+            find = new RegExp(peerClass, "g")
+            cr = SocialCalc.coordToCr(ecell)
+            cell = SocialCalc.GetEditorCellElement(editor, cr.row, cr.col)
+            cell.element.className += peerClass if cell.element.className.search(find) == -1
           break
+        when "ecell"
+            peerClass = " " + @user + " defaultPeer"
+            find = new RegExp(peerClass, "g")
+            if @original
+              origCR = SocialCalc.coordToCr(@original)
+              origCell = SocialCalc.GetEditorCellElement(editor, origCR.row, origCR.col)
+              origCell.element.className = origCell.element.className.replace(find, "")
+            cr = SocialCalc.coordToCr(@ecell)
+            cell = SocialCalc.GetEditorCellElement(editor, cr.row, cr.col)
+            cell.element.className += peerClass if cell.element.className.search(find) == -1
         when "ask.snapshot"
           SocialCalc.Callbacks.broadcast "snapshot",
             to: @user
@@ -116,6 +134,10 @@ require('zappa') port, host, ->
           spreadsheet = SocialCalc.CurrentSpreadsheetControlObject
           cmdstr = @log.join("\n")
           SocialCalc.CurrentSpreadsheetControlObject.context.sheetobj.ScheduleSheetCommands cmdstr, false, true
+          editor = SocialCalc.CurrentSpreadsheetControlObject.editor
+#          editor.MoveECellCallback.broadcast = (e) ->
+#            SocialCalc.Callbacks.broadcast "my.ecell"
+#              ecell: e.ecell.coord
         when "snapshot"
           break if SocialCalc.hadSnapshot
           SocialCalc.hadSnapshot = true
