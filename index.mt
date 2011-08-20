@@ -71,11 +71,15 @@ body
 <input type="hidden" name="sheetname" value="$sheetname">
 </div>
 </form>
-<div id="msg" style="position:absolute;right:15px;">
-<input type="button" style="font-size:x-small;" value="Clear" onclick="addmsg('',true);"><br>
-<textarea id="msgtext" style="margin-top:10px;width:110px;height:200px;"></textarea><br>
+<div id="msg" style="position:absolute;right:15px;top: 8px; bottom: 80px">
+<textarea id="msgtext" style="margin-top:10px;width:110px;height:100%;"></textarea><br>
+<form id="msgform">
+<input type="text" id="msgout" name="msgout" style="width: 110px">
+<br>
+<input type="submit" style="font-size:x-small;" value="Add a line" onclick="val = document.getElementById('msgout').value; if (/\S/.test(val)) {SocialCalc.Callbacks.broadcast('chat', {msg: val}); addmsg(val, false); document.getElementById('msgout').value = ''}; return false"><br>
+</form>
 </div>
-<div id="tableeditor" style="margin:8px 140px 10px 0px;">editor goes here</div>
+<div id="tableeditor" style="margin:8px 140px 10px 0px;">&nbsp;</div>
 <script>
 
 document.getElementById("msgtext").value = "";

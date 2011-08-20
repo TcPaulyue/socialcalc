@@ -1,6 +1,9 @@
 form {
     display: none;
 }
+#msgform {
+    display: block;
+}
 div.wiki p {
     margin: 0;
 }

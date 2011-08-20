@@ -45,6 +45,10 @@ require('zappa') port, host, ->
   at broadcast: ->
     #io.sockets.in(@room).emit 'broadcast', @
     switch @type
+      when 'chat'
+        db.rpush "chat-#{@room}", @msg, =>
+          io.sockets.emit 'chat', @
+        return
       when 'ask.ecells'
         db.hgetall "ecell-#{@room}", (err, values) =>
           io.sockets.emit 'broadcast',
@@ -60,12 +64,14 @@ require('zappa') port, host, ->
           io.sockets.emit 'broadcast', @
         return
       when 'ask.snapshot'
-        db.lrange "log-#{@room}", 0, -1, (err, values) =>
-          io.sockets.emit 'broadcast',
-            type: 'log'
-            log: values
-            to: @user
-            room: @room
+        db.lrange "log-#{@room}", 0, -1, (err, log) =>
+          db.lrange "chat-#{@room}", 0, -1, (err, chat) =>
+            io.sockets.emit 'broadcast',
+              type: 'log'
+              to: @user
+              room: @room
+              log: log
+              chat: chat
         return
     io.sockets.emit 'broadcast', @
   
@@ -100,6 +106,8 @@ require('zappa') port, host, ->
 
       editor = SocialCalc.CurrentSpreadsheetControlObject.editor
       switch @type
+        when "chat"
+          window.addmsg @msg
         when "ecells"
           for user, ecell of @ecells
             continue if user == SocialCalc._username
@@ -132,6 +140,7 @@ require('zappa') port, host, ->
           break if SocialCalc.hadSnapshot
           SocialCalc.hadSnapshot = true
           spreadsheet = SocialCalc.CurrentSpreadsheetControlObject
+          window.addmsg @chat.join("\n"), true
           cmdstr = @log.join("\n")
           SocialCalc.CurrentSpreadsheetControlObject.context.sheetobj.ScheduleSheetCommands cmdstr, false, true
           editor = SocialCalc.CurrentSpreadsheetControlObject.editor
