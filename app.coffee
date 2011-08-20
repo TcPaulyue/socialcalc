@@ -1,10 +1,25 @@
 port = Number(process.env.VCAP_APP_PORT || 3000)
 host = process.env.VCAP_APP_HOST || '127.0.0.1'
+redisPort = null
+redisHost = null
+redisPass = null
 
-require('zappa') port, host, ->
+services = JSON.parse(process.env.VCAP_SERVICES || "{}")
+for name, items of services
+  continue unless /^redis/.test(name)
+  if items && items.length
+    redisPort = items[0].credentials.port
+    redisHost = items[0].credentials.hostname
+    redisPass = items[0].credentials.password
+
+db = require('redis').createClient(redisPort, redisHost)
+db.auth(redisPass) if redisPass
+
+require('zappa') port, host, {db}, ->
   enable 'serve jquery'
   app.use express.static __dirname
-  def db: require('redis').createClient()
+
+  def {db}
 
   get '/': ->
     response.contentType 'text/html'
