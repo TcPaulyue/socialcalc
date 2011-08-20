@@ -44,6 +44,19 @@ require('zappa') port, host, ->
   
   at broadcast: ->
     #io.sockets.in(@room).emit 'broadcast', @
+    switch @type
+      when 'execute'
+        db.rpush @room, @cmdstr, =>
+          io.sockets.emit 'broadcast', @
+        return
+      when 'ask.snapshot'
+        db.lrange @room, 0, -1, (err, values) =>
+          console.log "LRANGE : #{@room}+#{@user}... #{values}"
+          io.sockets.emit 'broadcast', 
+            type: 'log'
+            log: values
+            to: @user
+        return
     io.sockets.emit 'broadcast', @
   
   client '/player.js': ->
@@ -66,10 +79,8 @@ require('zappa') port, host, ->
       data.type = type
       emit 'broadcast', data
 
-    at connection: ->
-      SocialCalc.isConnected = true
-      SocialCalc.Callbacks.broadcast "ask.snapshot"
-      setTimeout (-> SocialCalc.hadSnapshot = true), 30000
+    SocialCalc.isConnected = true
+    SocialCalc.Callbacks.broadcast "ask.snapshot"
 
     at broadcast: ->
       return unless SocialCalc?.isConnected
@@ -99,6 +110,12 @@ require('zappa') port, host, ->
             to: @user
             ecell: editor.ecell.coord
           break
+        when "log"
+          break if SocialCalc.hadSnapshot
+          SocialCalc.hadSnapshot = true
+          spreadsheet = SocialCalc.CurrentSpreadsheetControlObject
+          cmdstr = @log.join("\n")
+          SocialCalc.CurrentSpreadsheetControlObject.context.sheetobj.ScheduleSheetCommands cmdstr, false, true
         when "snapshot"
           break if SocialCalc.hadSnapshot
           SocialCalc.hadSnapshot = true
