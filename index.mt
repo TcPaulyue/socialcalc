@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>SocialCalc Demo</title>
+<title>MeetingCalc - Share the URL to your friends and edit together!</title>
 
 <script type="text/javascript" src="socialcalcconstants.js"></script>
 <script type="text/javascript" src="socialcalc-3.js"></script>

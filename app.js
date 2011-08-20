@@ -6,9 +6,7 @@
   redisPort = null;
   redisHost = null;
   redisPass = null;
-  console.log(process.env.VCAP_SERVICES);
   services = JSON.parse(process.env.VCAP_SERVICES || "{}");
-  console.log(services);
   for (name in services) {
     items = services[name];
     if (!/^redis/.test(name)) {
@@ -20,9 +18,6 @@
       redisPass = items[0].credentials.password;
     }
   }
-  console.log(redisPort);
-  console.log(redisHost);
-  console.log(redisPass);
   db = require('redis').createClient(redisPort, redisHost);
   if (redisPass) {
     db.auth(redisPass);
