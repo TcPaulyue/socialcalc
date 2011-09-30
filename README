@@ -1,6 +1,11 @@
-The "zappa" branch has moved to its own repository:
+The Node.js port in "zappa" branch has moved to its own repository:
 
-    https://github.com/audreyt/meetingcalc
+    https://github.com/audreyt/ethercalc
+
+Also, there are now two public playgrounds for experimenting EtherCalc:
+
+    http://ethercalc.org/
+    http://ethercalc.no.de/
 
 Share & Enjoy,
 Audrey
