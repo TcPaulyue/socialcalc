@@ -1,6 +1,22 @@
                                 -=[Multiplayer Socialcalc]=-
 
-  >> See https://github.com/audreyt/socialcalc/wiki for an upcoming book chapter on this project! <<
+  >> See https://github.com/audreyt/socialcalc/wiki for a book chapter on this project! <<
+
+                            .oO( Advertisement for EtherCalc )Oo.
+
+    Please note that this repository hosts a proof-of-concept that provides
+    no capability to save/load spreadsheetgs.
+
+    However, a Node.js port with Redis storage backend is now available at:
+
+        https://github.com/audreyt/ethercalc
+
+    There are now two public playgrounds for experimenting EtherCalc:
+
+        http://ethercalc.org/
+        http://ethercalc.no.de/
+
+    Please feel free to take a look at it too!
 
                                 .oO( Setup Instructions )Oo.
 
